@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skwirrel API v2 - Swagger UI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css">
+  <style>
+    body { margin: 0; padding: 0; }
+    .topbar { display: none !important; }
+    .swagger-ui .info { margin: 30px 0; }
+    .swagger-ui .info .title { font-size: 2em; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js"></script>
+  <script>
+    // Inline the OpenAPI spec so this HTML works standalone
+    const spec = {
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Skwirrel PIM API v2",
+    "version": "2.0.0",
+    "description": "Skwirrel Product Information Management JSON-RPC 2.0 API.\n\nAll endpoints use a single POST URL with JSON-RPC 2.0 request bodies. The `method` field determines which operation is called.\n\n## Authentication\n1. Call `getToken` with username/password\n2. Use the returned token in all subsequent requests\n\n## JSON-RPC 2.0 Format\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"methodName\",\n  \"params\": { \"token\": \"...\", ... },\n  \"id\": 1\n}\n```",
+    "contact": { "name": "Skwirrel", "url": "https://skwirrel.eu" }
+  },
+  "servers": [
+    {
+      "url": "https://{customer}.skwirrel.eu/api/v2",
+      "description": "Skwirrel API (per-customer)",
+      "variables": { "customer": { "default": "demo", "description": "Customer subdomain" } }
+    }
+  ],
+  "paths": {
+    "/getToken": {
+      "post": {
+        "operationId": "getToken", "tags": ["Authentication"],
+        "summary": "Obtain an API token",
+        "description": "Authenticate with username and password to receive a session token.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getToken", "params": { "username": "api_user", "password": "api_password" }, "id": 1 } } } },
+        "responses": { "200": { "description": "Token returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" }, "example": { "jsonrpc": "2.0", "result": { "token": "abc123def456" }, "id": 1 } } } } }
+      }
+    },
+    "/getProducts": {
+      "post": {
+        "operationId": "getProducts", "tags": ["Products"],
+        "summary": "Retrieve products",
+        "description": "Retrieve products with optional includes. Supports pagination and modified_since for incremental sync.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getProducts", "params": { "token": "TOKEN", "product_id": null, "include_trade_items": true, "include_features": false, "include_etim": false, "include_custom_classes": false, "include_attachments": false, "include_seo": false, "include_custom_groups": false, "include_related_products": false, "offset": 0, "limit": 50, "modified_since": null }, "id": 1 } } } },
+        "responses": { "200": { "description": "Products returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/getProductsByFilter": {
+      "post": {
+        "operationId": "getProductsByFilter", "tags": ["Products"],
+        "summary": "Retrieve products by filter",
+        "description": "Filter by brand, supplier_code, category_id, etim_class_id, or free text search.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getProductsByFilter", "params": { "token": "TOKEN", "filter": { "brand": null, "supplier_code": null, "category_id": null, "etim_class_id": null, "search": null }, "include_trade_items": true, "include_features": false, "offset": 0, "limit": 50 }, "id": 1 } } } },
+        "responses": { "200": { "description": "Products returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/saveProduct": {
+      "post": {
+        "operationId": "saveProduct", "tags": ["Products"],
+        "summary": "Create or update a product",
+        "description": "Set product_id to null for new products. Supports multilingual descriptions.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "saveProduct", "params": { "token": "TOKEN", "product": { "product_id": null, "manufacturer_product_code": "EXAMPLE-001", "brand": "ExampleBrand", "short_description": { "nl": "Korte omschrijving", "en": "Short description" }, "long_description": { "nl": "Lange omschrijving", "en": "Long description" } } }, "id": 1 } } } },
+        "responses": { "200": { "description": "Product saved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/saveProductSeo": {
+      "post": {
+        "operationId": "saveProductSeo", "tags": ["Products"],
+        "summary": "Save product SEO metadata",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "saveProductSeo", "params": { "token": "TOKEN", "product_id": "PRODUCT_ID", "seo": { "meta_title": {"nl": "Titel", "en": "Title"}, "meta_description": {"nl": "Omschrijving", "en": "Description"}, "slug": {"nl": "slug-nl", "en": "slug-en"} } }, "id": 1 } } } },
+        "responses": { "200": { "description": "SEO saved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/saveSimpleProductFeature": {
+      "post": {
+        "operationId": "saveSimpleProductFeature", "tags": ["Products"],
+        "summary": "Save a product feature",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "saveSimpleProductFeature", "params": { "token": "TOKEN", "product_id": "PRODUCT_ID", "feature": { "feature_code": "CODE", "value": "Value", "unit": "mm" } }, "id": 1 } } } },
+        "responses": { "200": { "description": "Feature saved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/saveProductCustomGroup": {
+      "post": {
+        "operationId": "saveProductCustomGroup", "tags": ["Products"],
+        "summary": "Save product custom group",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "saveProductCustomGroup", "params": { "token": "TOKEN", "product_id": "PRODUCT_ID", "custom_group": { "group_code": "GROUP", "values": [{"code": "V1", "value": {"nl": "Waarde", "en": "Value"}}] } }, "id": 1 } } } },
+        "responses": { "200": { "description": "Saved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/getGroupedProducts": {
+      "post": {
+        "operationId": "getGroupedProducts", "tags": ["Grouped Products"],
+        "summary": "Retrieve grouped products",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getGroupedProducts", "params": { "token": "TOKEN", "group_id": null, "offset": 0, "limit": 50 }, "id": 1 } } } },
+        "responses": { "200": { "description": "Groups returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/saveGroup": {
+      "post": {
+        "operationId": "saveGroup", "tags": ["Grouped Products"],
+        "summary": "Create or update a product group",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "saveGroup", "params": { "token": "TOKEN", "group": { "group_id": null, "group_code": "GRP-001", "name": {"nl": "Naam", "en": "Name"}, "product_ids": [] } }, "id": 1 } } } },
+        "responses": { "200": { "description": "Group saved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/saveTradeItem": {
+      "post": {
+        "operationId": "saveTradeItem", "tags": ["Trade Items"],
+        "summary": "Create or update a trade item",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "saveTradeItem", "params": { "token": "TOKEN", "product_id": "PRODUCT_ID", "trade_item": { "trade_item_id": null, "gtin": "8712345678901", "supplier_trade_item_code": "TI-001", "quantity_per_trade_item": 1, "minimum_order_quantity": 1, "trade_item_unit": "PCE" } }, "id": 1 } } } },
+        "responses": { "200": { "description": "Trade item saved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/saveSimpleTradeItemFeature": {
+      "post": {
+        "operationId": "saveSimpleTradeItemFeature", "tags": ["Trade Items"],
+        "summary": "Save a trade item feature",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "saveSimpleTradeItemFeature", "params": { "token": "TOKEN", "trade_item_id": "TI_ID", "feature": { "feature_code": "CODE", "value": "Value", "unit": "mm" } }, "id": 1 } } } },
+        "responses": { "200": { "description": "Feature saved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/saveTradeItemCustomGroup": {
+      "post": {
+        "operationId": "saveTradeItemCustomGroup", "tags": ["Trade Items"],
+        "summary": "Save trade item custom group",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "saveTradeItemCustomGroup", "params": { "token": "TOKEN", "trade_item_id": "TI_ID", "custom_group": { "group_code": "GROUP", "values": [{"code": "V1", "value": {"nl": "Waarde", "en": "Value"}}] } }, "id": 1 } } } },
+        "responses": { "200": { "description": "Saved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/getCategories": {
+      "post": {
+        "operationId": "getCategories", "tags": ["Categories"],
+        "summary": "Retrieve category tree",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getCategories", "params": { "token": "TOKEN", "include_products": false, "include_custom_classes": false }, "id": 1 } } } },
+        "responses": { "200": { "description": "Categories returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/saveSupplier": {
+      "post": {
+        "operationId": "saveSupplier", "tags": ["Suppliers"],
+        "summary": "Create or update a supplier",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "saveSupplier", "params": { "token": "TOKEN", "supplier": { "supplier_id": null, "supplier_code": "SUP-001", "name": "Example B.V.", "gln": "8712345000001" } }, "id": 1 } } } },
+        "responses": { "200": { "description": "Supplier saved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/getAttachments": {
+      "post": {
+        "operationId": "getAttachments", "tags": ["Attachments"],
+        "summary": "Retrieve attachments",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getAttachments", "params": { "token": "TOKEN", "product_id": null, "file_source_url": true, "include_products": false, "offset": 0, "limit": 50 }, "id": 1 } } } },
+        "responses": { "200": { "description": "Attachments returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/getAttachment": {
+      "post": {
+        "operationId": "getAttachment", "tags": ["Attachments"],
+        "summary": "Retrieve a single attachment",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getAttachment", "params": { "token": "TOKEN", "attachment_id": "ATTACHMENT_ID" }, "id": 1 } } } },
+        "responses": { "200": { "description": "Attachment returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/getMetaClassifications": {
+      "post": {
+        "operationId": "getMetaClassifications", "tags": ["Classifications"],
+        "summary": "Retrieve meta classifications",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getMetaClassifications", "params": { "token": "TOKEN" }, "id": 1 } } } },
+        "responses": { "200": { "description": "Classifications returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/getDenormalizedEtimData": {
+      "post": {
+        "operationId": "getDenormalizedEtimData", "tags": ["Classifications"],
+        "summary": "Retrieve denormalized ETIM class data",
+        "description": "Get features, allowed values, and units for a specific ETIM class.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getDenormalizedEtimData", "params": { "token": "TOKEN", "etim_class_id": "EC000001", "language": "nl" }, "id": 1 } } } },
+        "responses": { "200": { "description": "ETIM data returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    },
+    "/getPriceLists": {
+      "post": {
+        "operationId": "getPriceLists", "tags": ["Price Lists"],
+        "summary": "Retrieve price lists",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }, "example": { "jsonrpc": "2.0", "method": "getPriceLists", "params": { "token": "TOKEN", "price_list_id": null, "offset": 0, "limit": 50 }, "id": 1 } } } },
+        "responses": { "200": { "description": "Price lists returned", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JsonRpcResponse" } } } } }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "JsonRpcRequest": {
+        "type": "object",
+        "required": ["jsonrpc", "method", "params", "id"],
+        "properties": {
+          "jsonrpc": { "type": "string", "enum": ["2.0"] },
+          "method": { "type": "string" },
+          "params": { "type": "object" },
+          "id": { "type": "integer" }
+        }
+      },
+      "JsonRpcResponse": {
+        "type": "object",
+        "properties": {
+          "jsonrpc": { "type": "string", "enum": ["2.0"] },
+          "result": { "description": "Response data on success" },
+          "error": { "type": "object", "properties": { "code": { "type": "integer" }, "message": { "type": "string" } } },
+          "id": { "type": "integer" }
+        }
+      }
+    }
+  },
+  "tags": [
+    {"name": "Authentication"},
+    {"name": "Products"},
+    {"name": "Grouped Products"},
+    {"name": "Trade Items"},
+    {"name": "Categories"},
+    {"name": "Suppliers"},
+    {"name": "Attachments"},
+    {"name": "Classifications"},
+    {"name": "Price Lists"}
+  ]
+};
+
+    SwaggerUIBundle({
+      spec: spec,
+      dom_id: '#swagger-ui',
+      presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIStandalonePreset
+      ],
+      layout: "StandaloneLayout",
+      deepLinking: true,
+      defaultModelsExpandDepth: -1
+    });
+  </script>
+</body>
+</html>

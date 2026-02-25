@@ -1,0 +1,36 @@
+meta {
+  name: saveProductCustomGroup
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductCustomGroup",
+    "params": {
+      "token": "{{token}}",
+      "product_id": "PRODUCT_ID_HERE",
+      "custom_group": {
+        "group_code": "GROUP_CODE",
+        "values": [
+          {
+            "code": "VALUE_CODE",
+            "value": {"nl": "Waarde", "en": "Value"}
+          }
+        ]
+      }
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Save custom group data for a product.
+}

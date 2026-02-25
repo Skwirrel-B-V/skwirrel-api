@@ -1,0 +1,29 @@
+meta {
+  name: getGroupedProducts
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getGroupedProducts",
+    "params": {
+      "token": "{{token}}",
+      "group_id": null,
+      "offset": 0,
+      "limit": 50
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve grouped products (variants, sets). Set group_id to null for all groups.
+}

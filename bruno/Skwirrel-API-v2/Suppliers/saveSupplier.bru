@@ -1,0 +1,32 @@
+meta {
+  name: saveSupplier
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveSupplier",
+    "params": {
+      "token": "{{token}}",
+      "supplier": {
+        "supplier_id": null,
+        "supplier_code": "SUP-001",
+        "name": "Example Supplier B.V.",
+        "gln": "8712345000001"
+      }
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a supplier. Set supplier_id to null for new suppliers.
+}

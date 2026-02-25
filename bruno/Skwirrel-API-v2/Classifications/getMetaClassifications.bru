@@ -1,0 +1,26 @@
+meta {
+  name: getMetaClassifications
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getMetaClassifications",
+    "params": {
+      "token": "{{token}}"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve available meta classifications (ETIM versions, custom classification models).
+}

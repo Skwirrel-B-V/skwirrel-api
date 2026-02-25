@@ -1,0 +1,33 @@
+meta {
+  name: saveSimpleProductFeature
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveSimpleProductFeature",
+    "params": {
+      "token": "{{token}}",
+      "product_id": "PRODUCT_ID_HERE",
+      "feature": {
+        "feature_id": null,
+        "feature_code": "FEATURE_CODE",
+        "value": "Feature value",
+        "unit": "mm"
+      }
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Save a simple feature value for a product.
+}

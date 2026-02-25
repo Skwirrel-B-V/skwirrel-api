@@ -1,0 +1,27 @@
+meta {
+  name: getAttachment
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getAttachment",
+    "params": {
+      "token": "{{token}}",
+      "attachment_id": "ATTACHMENT_ID_HERE"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve a single attachment by ID.
+}

@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "Skwirrel API v2",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

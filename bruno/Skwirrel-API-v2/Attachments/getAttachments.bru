@@ -1,0 +1,31 @@
+meta {
+  name: getAttachments
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getAttachments",
+    "params": {
+      "token": "{{token}}",
+      "product_id": null,
+      "file_source_url": true,
+      "include_products": false,
+      "offset": 0,
+      "limit": 50
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve attachments with optional download URLs and product references.
+}

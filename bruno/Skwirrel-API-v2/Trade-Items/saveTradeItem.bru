@@ -1,0 +1,35 @@
+meta {
+  name: saveTradeItem
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItem",
+    "params": {
+      "token": "{{token}}",
+      "product_id": "PRODUCT_ID_HERE",
+      "trade_item": {
+        "trade_item_id": null,
+        "gtin": "8712345678901",
+        "supplier_trade_item_code": "TI-001",
+        "quantity_per_trade_item": 1,
+        "minimum_order_quantity": 1,
+        "trade_item_unit": "PCE"
+      }
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a trade item for a product.
+}

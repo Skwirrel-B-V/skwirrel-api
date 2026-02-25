@@ -1,0 +1,40 @@
+meta {
+  name: getProducts
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getProducts",
+    "params": {
+      "token": "{{token}}",
+      "product_id": null,
+      "include_trade_items": true,
+      "include_features": false,
+      "include_etim": false,
+      "include_custom_classes": false,
+      "include_attachments": false,
+      "include_seo": false,
+      "include_custom_groups": false,
+      "include_related_products": false,
+      "offset": 0,
+      "limit": 50,
+      "modified_since": null
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve products with optional includes.
+  Set product_id to a specific ID or null for all.
+  Supports pagination via offset/limit and incremental sync via modified_since.
+}

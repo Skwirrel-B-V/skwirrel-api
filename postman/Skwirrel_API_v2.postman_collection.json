@@ -1,0 +1,548 @@
+{
+	"info": {
+		"_postman_id": "skwirrel-api-v2-collection",
+		"name": "Skwirrel API v2",
+		"description": "Skwirrel PIM JSON-RPC 2.0 API.\n\n## Setup\n1. Set the `base_url` variable to your Skwirrel instance (e.g. `https://yourcompany.skwirrel.eu/api/v2/`)\n2. Run the **getToken** request first to authenticate\n3. The token is automatically stored in the `token` variable for all subsequent requests\n\n## JSON-RPC 2.0\nAll requests use POST with a JSON-RPC 2.0 body:\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"methodName\",\n  \"params\": { ... },\n  \"id\": 1\n}\n```",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://yourcompany.skwirrel.eu/api/v2/",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "password",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"description": "Obtain an API token. The token is automatically saved to the `token` collection variable.",
+			"item": [
+				{
+					"name": "getToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.result && jsonData.result.token) {",
+									"    pm.collectionVariables.set('token', jsonData.result.token);",
+									"    pm.test('Token stored successfully', function () {",
+									"        pm.expect(jsonData.result.token).to.be.a('string');",
+									"    });",
+									"} else {",
+									"    pm.test('Token retrieval failed', function () {",
+									"        pm.expect.fail('No token in response: ' + JSON.stringify(jsonData));",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getToken\",\n  \"params\": {\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Authenticate and obtain an API token. The token is automatically stored in the `token` collection variable via the Tests script.\n\n**Required params:**\n- `username` — API username\n- `password` — API password"
+					}
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"description": "Retrieve and manage products.",
+			"item": [
+				{
+					"name": "getProducts",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getProducts\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"product_id\": null,\n    \"include_trade_items\": true,\n    \"include_features\": false,\n    \"include_etim\": false,\n    \"include_custom_classes\": false,\n    \"include_attachments\": false,\n    \"include_seo\": false,\n    \"include_custom_groups\": false,\n    \"include_related_products\": false,\n    \"offset\": 0,\n    \"limit\": 50,\n    \"modified_since\": null\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve products with optional includes.\n\n**Params:**\n- `token` — Auth token\n- `product_id` — (optional) Specific product ID, or null for all\n- `include_trade_items` — Include trade item data\n- `include_features` — Include product features\n- `include_etim` — Include ETIM classification data\n- `include_custom_classes` — Include custom classification data\n- `include_attachments` — Include attachments/media\n- `include_seo` — Include SEO metadata\n- `include_custom_groups` — Include custom group data\n- `include_related_products` — Include related products\n- `offset` / `limit` — Pagination\n- `modified_since` — ISO date filter for incremental sync"
+					}
+				},
+				{
+					"name": "getProducts (single by ID)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getProducts\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"product_id\": \"PRODUCT_ID_HERE\",\n    \"include_trade_items\": true,\n    \"include_features\": true,\n    \"include_etim\": true,\n    \"include_custom_classes\": true,\n    \"include_attachments\": true,\n    \"include_seo\": true,\n    \"include_custom_groups\": true,\n    \"include_related_products\": true\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve a single product by ID with all includes enabled. Replace `PRODUCT_ID_HERE` with the actual product ID."
+					}
+				},
+				{
+					"name": "getProductsByFilter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getProductsByFilter\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"filter\": {\n      \"brand\": null,\n      \"supplier_code\": null,\n      \"category_id\": null,\n      \"etim_class_id\": null,\n      \"search\": null\n    },\n    \"include_trade_items\": true,\n    \"include_features\": false,\n    \"include_etim\": false,\n    \"include_attachments\": false,\n    \"offset\": 0,\n    \"limit\": 50\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve products using filter criteria.\n\n**Filter options:**\n- `brand` — Filter by brand name\n- `supplier_code` — Filter by supplier code\n- `category_id` — Filter by category\n- `etim_class_id` — Filter by ETIM class\n- `search` — Free text search"
+					}
+				},
+				{
+					"name": "saveProduct",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"saveProduct\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"product\": {\n      \"product_id\": null,\n      \"manufacturer_product_code\": \"EXAMPLE-001\",\n      \"brand\": \"ExampleBrand\",\n      \"short_description\": {\n        \"nl\": \"Korte omschrijving\",\n        \"en\": \"Short description\"\n      },\n      \"long_description\": {\n        \"nl\": \"Lange omschrijving\",\n        \"en\": \"Long description\"\n      },\n      \"category_id\": null,\n      \"etim_class_id\": null,\n      \"supplier_code\": null\n    }\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Create or update a product.\n\n- Set `product_id` to null for new products, or provide an existing ID to update.\n- Descriptions support multilingual values (nl, en, de, fr, etc.)."
+					}
+				},
+				{
+					"name": "saveProductSeo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"saveProductSeo\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"product_id\": \"PRODUCT_ID_HERE\",\n    \"seo\": {\n      \"meta_title\": {\n        \"nl\": \"SEO Titel\",\n        \"en\": \"SEO Title\"\n      },\n      \"meta_description\": {\n        \"nl\": \"SEO omschrijving\",\n        \"en\": \"SEO description\"\n      },\n      \"slug\": {\n        \"nl\": \"product-slug-nl\",\n        \"en\": \"product-slug-en\"\n      }\n    }\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Save SEO metadata for a product.\n\nSupports multilingual meta_title, meta_description, and slug."
+					}
+				},
+				{
+					"name": "saveSimpleProductFeature",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"saveSimpleProductFeature\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"product_id\": \"PRODUCT_ID_HERE\",\n    \"feature\": {\n      \"feature_id\": null,\n      \"feature_code\": \"FEATURE_CODE\",\n      \"value\": \"Feature value\",\n      \"unit\": \"mm\"\n    }\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Save a simple feature value for a product."
+					}
+				},
+				{
+					"name": "saveProductCustomGroup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"saveProductCustomGroup\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"product_id\": \"PRODUCT_ID_HERE\",\n    \"custom_group\": {\n      \"group_code\": \"GROUP_CODE\",\n      \"values\": [\n        {\n          \"code\": \"VALUE_CODE\",\n          \"value\": {\n            \"nl\": \"Waarde\",\n            \"en\": \"Value\"\n          }\n        }\n      ]\n    }\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Save custom group data for a product."
+					}
+				}
+			]
+		},
+		{
+			"name": "Grouped Products",
+			"description": "Manage product groupings (variants, sets, etc.).",
+			"item": [
+				{
+					"name": "getGroupedProducts",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getGroupedProducts\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"group_id\": null,\n    \"offset\": 0,\n    \"limit\": 50\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve grouped products (variants, sets).\n\nSet `group_id` to null for all groups, or provide a specific ID."
+					}
+				},
+				{
+					"name": "saveGroup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"saveGroup\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"group\": {\n      \"group_id\": null,\n      \"group_code\": \"GRP-001\",\n      \"name\": {\n        \"nl\": \"Groepsnaam\",\n        \"en\": \"Group name\"\n      },\n      \"product_ids\": []\n    }\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Create or update a product group.\n\nSet `group_id` to null for new groups."
+					}
+				}
+			]
+		},
+		{
+			"name": "Trade Items",
+			"description": "Manage trade items (GTINs, packaging units).",
+			"item": [
+				{
+					"name": "saveTradeItem",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"saveTradeItem\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"product_id\": \"PRODUCT_ID_HERE\",\n    \"trade_item\": {\n      \"trade_item_id\": null,\n      \"gtin\": \"8712345678901\",\n      \"supplier_trade_item_code\": \"TI-001\",\n      \"quantity_per_trade_item\": 1,\n      \"minimum_order_quantity\": 1,\n      \"trade_item_unit\": \"PCE\"\n    }\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Create or update a trade item for a product.\n\nSet `trade_item_id` to null for new trade items."
+					}
+				},
+				{
+					"name": "saveSimpleTradeItemFeature",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"saveSimpleTradeItemFeature\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"trade_item_id\": \"TRADE_ITEM_ID_HERE\",\n    \"feature\": {\n      \"feature_code\": \"FEATURE_CODE\",\n      \"value\": \"Feature value\",\n      \"unit\": \"mm\"\n    }\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Save a simple feature value for a trade item."
+					}
+				},
+				{
+					"name": "saveTradeItemCustomGroup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"saveTradeItemCustomGroup\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"trade_item_id\": \"TRADE_ITEM_ID_HERE\",\n    \"custom_group\": {\n      \"group_code\": \"GROUP_CODE\",\n      \"values\": [\n        {\n          \"code\": \"VALUE_CODE\",\n          \"value\": {\n            \"nl\": \"Waarde\",\n            \"en\": \"Value\"\n          }\n        }\n      ]\n    }\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Save custom group data for a trade item."
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"description": "Retrieve category tree.",
+			"item": [
+				{
+					"name": "getCategories",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getCategories\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"include_products\": false,\n    \"include_custom_classes\": false\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve the category tree.\n\n**Params:**\n- `include_products` — Include product references per category\n- `include_custom_classes` — Include custom classification data"
+					}
+				},
+				{
+					"name": "getCategories (with products)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getCategories\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"include_products\": true,\n    \"include_custom_classes\": true\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve the full category tree with products and custom classes included."
+					}
+				}
+			]
+		},
+		{
+			"name": "Suppliers",
+			"description": "Manage supplier data.",
+			"item": [
+				{
+					"name": "saveSupplier",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"saveSupplier\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"supplier\": {\n      \"supplier_id\": null,\n      \"supplier_code\": \"SUP-001\",\n      \"name\": \"Example Supplier B.V.\",\n      \"gln\": \"8712345000001\"\n    }\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Create or update a supplier.\n\nSet `supplier_id` to null for new suppliers."
+					}
+				}
+			]
+		},
+		{
+			"name": "Attachments",
+			"description": "Retrieve product attachments and media.",
+			"item": [
+				{
+					"name": "getAttachments",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getAttachments\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"product_id\": null,\n    \"file_source_url\": true,\n    \"include_products\": false,\n    \"offset\": 0,\n    \"limit\": 50\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve attachments.\n\n**Params:**\n- `product_id` — Filter by product, or null for all\n- `file_source_url` — Include download URLs\n- `include_products` — Include product references"
+					}
+				},
+				{
+					"name": "getAttachment (single)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getAttachment\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"attachment_id\": \"ATTACHMENT_ID_HERE\"\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve a single attachment by ID."
+					}
+				}
+			]
+		},
+		{
+			"name": "Classifications",
+			"description": "ETIM and meta classification data.",
+			"item": [
+				{
+					"name": "getMetaClassifications",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getMetaClassifications\",\n  \"params\": {\n    \"token\": \"{{token}}\"\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve available meta classifications (ETIM versions, custom classification models)."
+					}
+				},
+				{
+					"name": "getDenormalizedEtimData",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getDenormalizedEtimData\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"etim_class_id\": \"EC000001\",\n    \"language\": \"nl\"\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve denormalized ETIM class data (features, values, units) for a specific class.\n\n**Params:**\n- `etim_class_id` — ETIM class code (e.g. EC000001)\n- `language` — Language code (nl, en, de, fr)"
+					}
+				}
+			]
+		},
+		{
+			"name": "Price Lists",
+			"description": "Retrieve price list data.",
+			"item": [
+				{
+					"name": "getPriceLists",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"getPriceLists\",\n  \"params\": {\n    \"token\": \"{{token}}\",\n    \"price_list_id\": null,\n    \"offset\": 0,\n    \"limit\": 50\n  },\n  \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": ["{{base_url}}"]
+						},
+						"description": "Retrieve price lists.\n\nSet `price_list_id` to null for all, or provide a specific ID."
+					}
+				}
+			]
+		}
+	]
+}

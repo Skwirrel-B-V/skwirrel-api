@@ -4,7 +4,8 @@ import { readFileSync, mkdtempSync, writeFileSync, readdirSync, existsSync } fro
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { buildAll } from '../scripts/generate.mjs';
+import { buildAll, typeLabel, writeAll } from '../scripts/generate.mjs';
+import { createServer } from 'node:http';
 import { DOMAINS } from '../scripts/domains.mjs';
 
 const fixturePath = new URL('./fixtures/rpc-discover-v3.json', import.meta.url);
@@ -67,7 +68,7 @@ test('OpenAPI: 3.1, one operation per method, both servers and both auth schemes
 		assert.equal(version.schema.const, '3', op.operationId);
 		const body = op.requestBody.content['application/json'].schema;
 		assert.deepEqual(body.properties.method.enum, [op.operationId]);
-		assert.deepEqual(Object.keys(op.responses), ['200', '401', '403']);
+		assert.deepEqual(Object.keys(op.responses), ['200', '401', '403', '429']);
 	}
 	assert.equal(api.components.responses.Unauthorized.content['application/json'].example.error.code, -32001);
 	assert.equal(api.components.responses.Forbidden.content['application/json'].example.error.code, -32002);
@@ -177,4 +178,62 @@ test('CLI fails clearly when core is unreachable', () => {
 	assert.notEqual(r.status, 0);
 	assert.match(r.stderr, /Could not reach/);
 	assert.deepEqual(readdirSync(out), []);
+});
+
+test('typeLabel reads unions, nullables and lists correctly', () => {
+	assert.equal(typeLabel({ type: ['string', 'null'] }), 'string (nullable)');
+	assert.equal(typeLabel({ oneOf: [{ type: 'string' }, { type: 'null' }] }), 'string (nullable)');
+	assert.equal(typeLabel({ type: 'array', items: { oneOf: [{ type: 'integer' }, { type: 'string' }] } }), '(integer | string)[]');
+	assert.equal(typeLabel({ type: 'array', items: { type: 'integer' } }), 'integer[]');
+	assert.equal(typeLabel({ $ref: '#/components/schemas/Product' }), 'Product');
+	assert.equal(typeLabel({ type: 'null' }), 'null');
+});
+
+test('a method without params still builds', () => {
+	const doc = discover();
+	delete doc.methods.find((m) => m.name === 'getEtimReleases').params;
+	assert.doesNotThrow(() => buildAll(doc));
+});
+
+test('writeAll keeps the previous docs when the build is incomplete', () => {
+	const out = mkdtempSync(join(tmpdir(), 'skw-api-'));
+	writeAll(buildAll(discover()), out);
+	const before = readFileSync(join(out, 'openrpc/skwirrel-api-v3.openrpc.json'), 'utf8');
+	const partial = Object.fromEntries(Object.entries(buildAll(discover())).filter(([path]) => !path.startsWith('bruno/')));
+	partial['openrpc/skwirrel-api-v3.openrpc.json'] = '{}';
+	assert.throws(() => writeAll(partial, out), /nothing for: bruno/);
+	assert.equal(readFileSync(join(out, 'openrpc/skwirrel-api-v3.openrpc.json'), 'utf8'), before);
+	assert.deepEqual(readdirSync(out).sort(), ['bruno', 'openapi', 'openrpc', 'postman']);
+});
+
+test('CLI explains a non-JSON answer and leaves files alone', async () => {
+	const server = createServer((req, res) => res.end('<html>login</html>'));
+	await new Promise((r) => server.listen(0, '127.0.0.1', r));
+	const out = mkdtempSync(join(tmpdir(), 'skw-api-'));
+	try {
+		const { spawn } = await import('node:child_process');
+		const child = spawn(process.execPath, [cli, '--url', `http://127.0.0.1:${server.address().port}`, '--out', out]);
+		let stderr = '';
+		child.stderr.on('data', (d) => { stderr += d; });
+		const code = await new Promise((r) => child.on('close', r));
+		assert.notEqual(code, 0);
+		assert.match(stderr, /did not return JSON/);
+		assert.deepEqual(readdirSync(out), []);
+	} finally {
+		server.close();
+	}
+});
+
+test('CLI rejects an option used as the value of another', () => {
+	const r = spawnSync(process.execPath, [cli, '--url', '--input', 'x.json'], { encoding: 'utf8' });
+	assert.notEqual(r.status, 0);
+	assert.match(r.stderr, /Unknown or incomplete option "--url"/);
+});
+
+test('OpenAPI documents the 429 rate limit response with Retry-After', () => {
+	const api = JSON.parse(buildAll(discover())['openapi/skwirrel-api-v3.openapi.json']);
+	const tooMany = api.components.responses.TooManyRequests;
+	assert.equal(tooMany.content['application/json'].example.error.code, -32029);
+	assert.ok(tooMany.headers['Retry-After']);
+	for (const path of Object.values(api.paths)) assert.ok(path.post.responses['429']);
 });

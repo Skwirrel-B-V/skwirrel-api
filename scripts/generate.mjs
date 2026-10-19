@@ -5,9 +5,9 @@
 //   node scripts/generate.mjs --input discover.json            # use a saved document
 //
 // Writes openrpc/, openapi/, postman/ and bruno/ (all generated, never edit by
-// hand). Nothing is written unless the whole build succeeds.
+// hand). If anything fails, the previous docs stay as they were.
 
-import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DOMAINS } from './domains.mjs';
@@ -108,15 +108,25 @@ function resultEnvelope(result) {
 	return { jsonrpc: '2.0', result, id: 1 };
 }
 
-function typeLabel(schema = {}) {
+/** Short human-readable type of a JSON Schema, e.g. "string (nullable)" or "(integer | string)[]". */
+export function typeLabel(schema = {}) {
+	const isNull = (s) => s.type === 'null';
 	if (schema.$ref) return schema.$ref.split('/').pop();
-	if (schema.oneOf || schema.anyOf) return (schema.oneOf ?? schema.anyOf).map(typeLabel).join(' | ');
+	const union = schema.oneOf ?? schema.anyOf;
+	if (union) {
+		const label = union.filter((s) => !isNull(s)).map(typeLabel).join(' | ') || 'null';
+		return union.some(isNull) ? `${label} (nullable)` : label;
+	}
 	const types = [].concat(schema.type ?? 'any').filter((t) => t !== 'null');
 	const nullable = [].concat(schema.type ?? []).includes('null');
 	const label = types
-		.map((t) => (t === 'array' && schema.items ? `${typeLabel(schema.items)}[]` : t))
-		.join(' | ');
-	return nullable ? `${label} (nullable)` : label;
+		.map((t) => {
+			if (t !== 'array' || !schema.items) return t;
+			const item = typeLabel(schema.items);
+			return /[ |]/.test(item) ? `(${item})[]` : `${item}[]`;
+		})
+		.join(' | ') || 'null';
+	return nullable && label !== 'null' ? `${label} (nullable)` : label;
 }
 
 const cell = (text) => String(text ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
@@ -258,6 +268,7 @@ function buildOpenApi(methods) {
 					},
 					401: { $ref: '#/components/responses/Unauthorized' },
 					403: { $ref: '#/components/responses/Forbidden' },
+					429: { $ref: '#/components/responses/TooManyRequests' },
 				},
 			},
 		};
@@ -295,6 +306,12 @@ function buildOpenApi(methods) {
 			},
 			responses: {
 				Unauthorized: errorResponse('Wrong, expired or missing token.', -32001, 'Unauthorized', 'Failed to authenticate client'),
+				TooManyRequests: {
+					...errorResponse('Too many requests from this client. Wait the number of seconds in Retry-After.', -32029, 'Too many requests', 'Rate limit of 600 calls per minute exceeded'),
+					headers: {
+						'Retry-After': { description: 'Seconds to wait before retrying', schema: { type: 'integer' } },
+					},
+				},
 				Forbidden: errorResponse('The client has no grant for this method.', -32002, 'Method is forbidden', 'Method <method> (v3) is not allowed for this client'),
 			},
 			schemas: {
@@ -543,30 +560,51 @@ async function fetchDiscover(baseUrl) {
 		throw new Error(`Could not reach core at ${url}: ${error.cause?.message ?? error.message}`);
 	}
 	if (!response.ok) throw new Error(`Core at ${url} answered HTTP ${response.status}`);
+	let text;
 	try {
-		return await response.json();
+		text = await response.text();
+	} catch (error) {
+		throw new Error(`Reading the answer from core at ${url} failed: ${error.cause?.message ?? error.message}`);
+	}
+	try {
+		return JSON.parse(text);
 	} catch {
 		throw new Error(`Core at ${url} did not return JSON (a login page or proxy in between?)`);
 	}
 }
 
 /**
- * Writes everything into a temporary folder first and only then swaps each
- * output folder in, so a failed write never leaves half-written docs behind.
+ * Writes everything into a staging folder first. Only when all files are there
+ * are the old output folders moved aside and the new ones moved in; if a move
+ * fails, the old folders are put back. Either the old or the new docs remain.
  */
-function writeAll(files, outDir) {
+export function writeAll(files, outDir) {
 	mkdirSync(outDir, { recursive: true });
 	const staging = mkdtempSync(join(outDir, '.generate-'));
+	const backup = join(staging, '.previous');
+	const swapped = [];
 	try {
 		for (const [path, content] of Object.entries(files)) {
 			const target = join(staging, path);
 			mkdirSync(dirname(target), { recursive: true });
 			writeFileSync(target, content);
 		}
+		const missing = OUTPUT_DIRS.filter((dir) => !existsSync(join(staging, dir)));
+		if (missing.length) throw new Error(`Build produced nothing for: ${missing.join(', ')}`);
+
+		mkdirSync(backup);
 		for (const dir of OUTPUT_DIRS) {
-			rmSync(join(outDir, dir), { recursive: true, force: true });
+			if (existsSync(join(outDir, dir))) renameSync(join(outDir, dir), join(backup, dir));
+			swapped.push(dir);
 			renameSync(join(staging, dir), join(outDir, dir));
 		}
+	} catch (error) {
+		for (const dir of swapped.reverse()) {
+			if (!existsSync(join(backup, dir))) continue;
+			rmSync(join(outDir, dir), { recursive: true, force: true });
+			renameSync(join(backup, dir), join(outDir, dir));
+		}
+		throw error;
 	} finally {
 		rmSync(staging, { recursive: true, force: true });
 	}
@@ -582,7 +620,7 @@ function parseArgs(argv) {
 	for (let i = 0; i < argv.length; i += 2) {
 		const flag = argv[i];
 		const key = flag.startsWith('--') ? flag.slice(2) : null;
-		if (!['url', 'input', 'out'].includes(key) || argv[i + 1] === undefined) {
+		if (!['url', 'input', 'out'].includes(key) || argv[i + 1] === undefined || argv[i + 1].startsWith('--')) {
 			throw new Error(`Unknown or incomplete option "${flag}".\n\n${USAGE}`);
 		}
 		if (key in args) throw new Error(`Option --${key} given twice.`);

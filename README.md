@@ -47,7 +47,7 @@ Errors come back as a JSON-RPC `error` object instead of `result`, with a matchi
 { "jsonrpc": "2.0", "error": { "code": -32001, "message": "Unauthorized", "data": "Failed to authenticate client" }, "id": 1 }
 ```
 
-`error.data` adds detail, for example `Failed to authenticate client` (wrong or expired token) or `No client has been authorized` (no token sent). Ask your administrator to grant a method if you need it. On 429, wait and retry more slowly.
+`error.data` adds detail, for example `Failed to authenticate client` (wrong or expired token) or `No client has been authorized` (no token sent). Ask your administrator to grant a method if you need it. On 429, wait the number of seconds in the `Retry-After` response header before retrying. Every authenticated call returns `X-RateLimit-Limit` and `X-RateLimit-Remaining` (calls per minute; the default limit is 600), so you can slow down before you hit it.
 
 ## Your first request
 
@@ -108,7 +108,7 @@ Addons can add their own methods to a tenant. Those are not documented here.
 { "jsonrpc": "2.0", "result": { "product_id": 123, "outcome": "queued_for_review", "change_request_id": 42 }, "id": 1 }
 ```
 
-These four methods always return `outcome`. Check it; a successful call does not mean the change is live:
+These four methods, and `saveProductChangeRequest`, always return `outcome`. Check it; a successful call does not mean the change is live:
 
 | `outcome` | `change_request_id` | Meaning |
 |---|---|---|
@@ -116,7 +116,7 @@ These four methods always return `outcome`. Check it; a successful call does not
 | `queued_for_review` | integer | Nothing published yet; waiting for review in Skwirrel. |
 | `no_changes` | `null` | Nothing differs from the live data; nothing saved or queued. |
 
-Your administrator can also make your client **review-only**. Then these four methods always propose, even without the flag. Creating new products or trade items, and all other changes including deletes, are refused.
+Your administrator can also make your client **review-only**. Then these four methods always propose, even without the flag. Creating new products or trade items, all other changes including deletes, and addon methods are refused. Review-only does not grant any method by itself; your client still needs a grant per method.
 
 Only existing products and trade items can be proposed (pass their ID). Other methods reject `add_to_changes`. `saveProductChangeRequest` is the older name for `saveProduct` with `add_to_changes: true`.
 
@@ -154,7 +154,7 @@ Use a core with **no addons active**: addon methods would end up in the public d
 │   └── index.html                             # generated: Swagger UI, spec inlined
 ├── postman/
 │   ├── skwirrel-api-v3.postman_collection.json
-│   └── environments/                          # production (.eu), development (.dev)
+│   └── environments/                          # Production (.eu), Development (.dev)
 ├── bruno/skwirrel-api-v3/                     # generated: one .bru per method
 ├── scripts/
 │   ├── generate.mjs                           # the generator

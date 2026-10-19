@@ -1,0 +1,75 @@
+meta {
+  name: getProducts
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getProducts",
+    "params": {
+      "page": 1,
+      "limit": 2
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve products with optional filtering, pagination and include options
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `filter` | object (nullable) | no | Filter criteria: dynamic_selection_id, product_status_id, manufacturer_id, brand_id, code, updated_on |
+  | `options` | object (nullable) | no | Include options: include_trade_items, include_etim, include_custom_classes, include_categories, include_languages, etc. |
+
+  **Example: First page of products**. Use include_* flags to expand trade items, attachments, ETIM data, and more.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getProducts",
+    "params": {
+      "page": 1,
+      "limit": 2
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "products": [
+      {
+        "product_id": 1,
+        "internal_product_code": "ART001",
+        "manufacturer_product_code": "MFR-001",
+        "product_erp_description": "Product one"
+      },
+      {
+        "product_id": 2,
+        "internal_product_code": "ART002",
+        "manufacturer_product_code": "MFR-002",
+        "product_erp_description": "Product two"
+      }
+    ],
+    "page": {
+      "number_of_items": 2,
+      "items_per_page": 2,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

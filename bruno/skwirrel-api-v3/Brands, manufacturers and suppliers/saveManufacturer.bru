@@ -1,0 +1,65 @@
+meta {
+  name: saveManufacturer
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveManufacturer",
+    "params": {
+      "manufacturer_name": "Acme Corp",
+      "company_name": "Acme Corporation",
+      "country_code": "NL"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a manufacturer
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `manufacturer_id` | integer (nullable) | no | Internal ID of the manufacturer; omit to create a new manufacturer |
+  | `external_manufacturer_id` | string (nullable) | no | Your system's reference ID for the manufacturer |
+  | `manufacturer_name` | string (nullable) | no | Display name of the manufacturer |
+  | `company_name` | string (nullable) | no | Registered company name |
+  | `company_name_2` | string (nullable) | no | Second line of the company name |
+  | `address` | string (nullable) | no | Street address |
+  | `city` | string (nullable) | no | City |
+  | `postal_code` | string (nullable) | no | Postal or ZIP code |
+  | `country_code` | string (nullable) | no | ISO 3166-1 alpha-2 country code |
+  | `gln` | string (nullable) | no | Global Location Number (GS1 GLN, 13 digits) |
+  | `manufacturer_image_base64` | string (nullable) | no | Base64-encoded logo image for the manufacturer |
+
+  **Example: Create a manufacturer**. Omit manufacturer_id to create; provide it to update.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveManufacturer",
+    "params": {
+      "manufacturer_name": "Acme Corp",
+      "company_name": "Acme Corporation",
+      "country_code": "NL"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "manufacturer_id": 10
+  }
+  ```
+}

@@ -1,0 +1,58 @@
+meta {
+  name: saveTradeItemVat
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItemVat",
+    "params": {
+      "trade_item_id": 456,
+      "country_code": "NL",
+      "vat_code": "H"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Set the VAT rate code for a trade item in a specific country
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `trade_item_id` | integer | yes | Internal ID of the trade item |
+  | `country_code` | string | yes | ISO 3166-1 alpha-2 country code |
+  | `vat_code` | string | yes | VAT or tax code applicable in the specified country |
+
+  **Example: Set Dutch VAT code**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItemVat",
+    "params": {
+      "trade_item_id": 456,
+      "country_code": "NL",
+      "vat_code": "H"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "trade_item_id": 456,
+    "country_code": "NL"
+  }
+  ```
+}

@@ -1,0 +1,65 @@
+meta {
+  name: saveProductSeo
+  type: http
+  seq: 6
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductSeo",
+    "params": {
+      "product_id": 123,
+      "language": "nl",
+      "seo_slug": "mijn-product",
+      "seo_title": "Mijn product"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Set SEO metadata for a product in a specific language
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer | yes | Internal ID of the product |
+  | `language` | string | yes | BCP 47 language code (e.g. nl, nl-BE) |
+  | `context_id` | integer | no | Channel context ID; defaults to 1 |
+  | `seo_slug` | string (nullable) | no | URL-friendly slug for the product page |
+  | `seo_title` | string (nullable) | no | HTML title tag content for the product page |
+  | `seo_description` | string (nullable) | no | HTML meta description for the product page |
+  | `seo_keywords` | string (nullable) | no | HTML meta keywords for the product page |
+
+  **Example: Set Dutch SEO data**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductSeo",
+    "params": {
+      "product_id": 123,
+      "language": "nl",
+      "seo_slug": "mijn-product",
+      "seo_title": "Mijn product"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "language": "nl",
+    "context_id": 1
+  }
+  ```
+}

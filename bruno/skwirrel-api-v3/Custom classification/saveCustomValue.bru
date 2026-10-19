@@ -1,0 +1,84 @@
+meta {
+  name: saveCustomValue
+  type: http
+  seq: 9
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomValue",
+    "params": {
+      "custom_value_code": "RED"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a custom feature value for enum-type features
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `custom_value_id` | integer (nullable) | no | Internal ID of the custom value; omit to create a new value |
+  | `custom_value_code` | string (nullable) | no | Unique code identifying the value |
+  | `_translations` | object[] (nullable) | no | Translated descriptions for each language |
+
+  **Example: Create a custom value**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomValue",
+    "params": {
+      "custom_value_code": "RED"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_value_id": 1
+  }
+  ```
+
+  **Example: Create a value with translations**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomValue",
+    "params": {
+      "custom_value_code": "BLAUW",
+      "_translations": [
+        {
+          "language": "nl",
+          "custom_value_description": "Blauw"
+        },
+        {
+          "language": "en",
+          "custom_value_description": "Blue"
+        }
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_value_id": 2
+  }
+  ```
+}

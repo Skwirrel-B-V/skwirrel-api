@@ -1,0 +1,65 @@
+meta {
+  name: getManufacturers
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getManufacturers",
+    "params": {},
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve manufacturers
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `manufacturer_id` | integer[] (nullable) | no | Filter by internal manufacturer IDs |
+  | `external_manufacturer_id` | string[] (nullable) | no | Filter by your system's reference IDs for manufacturers |
+  | `include_manufacturer_images` | boolean | no | Include manufacturer images in the response |
+
+  **Example: All manufacturers**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getManufacturers",
+    "params": {},
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "manufacturers": [
+      {
+        "manufacturer_id": 1,
+        "manufacturer_name": "Acme Corp",
+        "company_name": "Acme Corporation",
+        "country_code": "NL",
+        "gln": "1234567890123"
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 1000,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

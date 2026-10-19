@@ -1,0 +1,74 @@
+meta {
+  name: getBrands
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getBrands",
+    "params": {
+      "page": 1,
+      "limit": 3
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve brands
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `brand_id` | integer[] (nullable) | no | Filter by internal brand IDs |
+  | `external_brand_id` | string[] (nullable) | no | Filter by your system's reference IDs for brands |
+  | `include_brand_images` | boolean | no | Include brand images in the response |
+
+  **Example: First page of brands**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getBrands",
+    "params": {
+      "page": 1,
+      "limit": 3
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "brands": [
+      {
+        "brand_id": 1,
+        "brand_name": "Acme",
+        "external_brand_id": "ACME"
+      },
+      {
+        "brand_id": 2,
+        "brand_name": "BrandX",
+        "external_brand_id": null
+      }
+    ],
+    "page": {
+      "number_of_items": 2,
+      "items_per_page": 3,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

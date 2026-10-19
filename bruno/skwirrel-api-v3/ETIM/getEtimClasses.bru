@@ -1,0 +1,76 @@
+meta {
+  name: getEtimClasses
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getEtimClasses",
+    "params": {
+      "etim_release": "ETIM-10.0",
+      "limit": 3
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve ETIM classes with optional translations. Defaults to latest version per class.
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–2500) |
+  | `etim_release` | string (nullable) | no | Filter by ETIM release (e.g. "ETIM-9.0") |
+  | `etim_class_code` | string (nullable) | no | Filter by exact ETIM class code (e.g. "EC000001") |
+  | `etim_class_type` | string (nullable) | no | Filter by class type: REGULAR, MODELLING, or CONNECTION |
+  | `search_query` | string (nullable) | no | Free-text search on class description, code, or synonyms |
+  | `include_languages` | string[] (nullable) | no | Language codes to include translations for (e.g. ["nl", "en"]) |
+
+  **Example: Classes for ETIM-10.0**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getEtimClasses",
+    "params": {
+      "etim_release": "ETIM-10.0",
+      "limit": 3
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "etim_classes": [
+      {
+        "etim_class_code": "EC002713",
+        "etim_class_type": "REGULAR",
+        "etim_group_code": "EG000034",
+        "etim_class_version": 10,
+        "etim_class_revision": 0,
+        "drawing_url": null,
+        "is_published": true,
+        "is_deleted": false
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 3,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

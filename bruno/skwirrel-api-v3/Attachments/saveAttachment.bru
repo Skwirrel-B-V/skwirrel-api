@@ -1,0 +1,113 @@
+meta {
+  name: saveAttachment
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveAttachment",
+    "params": {
+      "product_attachment_type_code": "MAN",
+      "source_type": "URL",
+      "source_url": "https://example.com/manual.pdf",
+      "language": "en"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a document attachment
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_attachment_id` | integer (nullable) | no | Internal ID of the attachment; omit to create a new attachment |
+  | `product_attachment_type_code` | string (nullable) | no | Type code classifying the attachment (e.g. TECHNICAL, SAFETY) |
+  | `language` | string (nullable) | no | Language code for the attachment; null for language-neutral attachments |
+  | `source_type` | string (nullable) | no | Whether the attachment is an uploaded file (FILE) or a URL reference (URL) |
+  | `source_url` | string (nullable) | no | URL of the attachment when source_type is URL |
+  | `for_internal_use` | boolean (nullable) | no | True if this attachment is for internal use only and should not be published |
+  | `certificate_number` | string (nullable) | no | Certificate or approval number |
+  | `certificate_issuer` | string (nullable) | no | Organisation that issued the certificate |
+  | `certificate_issue_date` | string (nullable) | no | Date the certificate was issued (ISO 8601) |
+  | `certificate_revision_date` | string (nullable) | no | Date of the most recent certificate revision (ISO 8601) |
+  | `certificate_expiration_date` | string (nullable) | no | Date the certificate expires (ISO 8601) |
+  | `certificate_claim_code` | string (nullable) | no | Standardised claim code associated with the certificate |
+  | `attachment_file_base64` | string (nullable) | no | Base64-encoded file content when source_type is FILE |
+  | `file_name` | string (nullable) | no | Display name for the file; only valid for source_type FILE; can be set independently of attachment_file_base64 |
+  | `_translations` | object[] (nullable) | no | Translated title and description for each language |
+  | `_attributes` | object[] (nullable) | no | Arbitrary key-value attributes for this attachment |
+
+  **Example: Create a URL attachment**. Use source_type=FILE with attachment_file_base64 to upload a file instead.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveAttachment",
+    "params": {
+      "product_attachment_type_code": "MAN",
+      "source_type": "URL",
+      "source_url": "https://example.com/manual.pdf",
+      "language": "en"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_attachment_id": 1
+  }
+  ```
+
+  **Example: Create attachment with translations and attributes**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveAttachment",
+    "params": {
+      "product_attachment_type_code": "MAN",
+      "source_type": "URL",
+      "source_url": "https://example.com/manual.pdf",
+      "_translations": [
+        {
+          "language": "en",
+          "product_attachment_title": "Instruction manual",
+          "product_attachment_description": "English instruction manual"
+        },
+        {
+          "language": "nl",
+          "product_attachment_title": "Gebruiksaanwijzing",
+          "product_attachment_description": "Nederlandstalige gebruiksaanwijzing"
+        }
+      ],
+      "_attributes": [
+        {
+          "attachment_attribute_name": "MANCategory",
+          "attachment_attribute_value": "USE"
+        }
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_attachment_id": 1
+  }
+  ```
+}

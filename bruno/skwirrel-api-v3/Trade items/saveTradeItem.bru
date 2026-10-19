@@ -1,0 +1,127 @@
+meta {
+  name: saveTradeItem
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItem",
+    "params": {
+      "product_id": 123,
+      "supplier_trade_item_code": "SUP-001",
+      "minimum_order_quantity": 1,
+      "order_multiple": 1
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a trade item (a supplier-specific SKU for a product). Set add_to_changes=true to propose an update to an existing trade item. Returns outcome=applied, queued_for_review (with change_request_id), or no_changes. Review-only clients cannot create trade items.
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `add_to_changes` | boolean | no | Queue an update for review instead of publishing; existing entities only |
+  | `trade_item_id` | integer (nullable) | no | Internal ID of the trade item; omit to create a new trade item |
+  | `external_trade_item_id` | string (nullable) | no | Your system's reference ID for the trade item |
+  | `product_id` | integer (nullable) | no | ID of the product this trade item belongs to |
+  | `trade_item_status_id` | integer (nullable) | no | ID of the publication status |
+  | `inherit_product_status` | boolean (nullable) | no | True to use the parent product's status |
+  | `trade_item_start_date` | string (nullable) | no | Date from which the trade item is available (ISO 8601) |
+  | `supplier_id` | integer (nullable) | no | ID of the supplier for this trade item |
+  | `trade_item_allowance_group_id` | integer (nullable) | no | ID of the allowance group |
+  | `inherit_product_allowance_group` | boolean (nullable) | no | True to use the parent product's allowance group |
+  | `trade_item_buying_group_id` | integer (nullable) | no | ID of the buying group |
+  | `inherit_product_buying_group` | boolean (nullable) | no | True to use the parent product's buying group |
+  | `trade_item_gtin` | string (nullable) | no | GTIN for this supplier SKU (up to 14 digits) |
+  | `supplier_trade_item_code` | string (nullable) | no | Supplier's own article code for this trade item |
+  | `trade_item_url` | string (nullable) | no | URL of the trade item on the supplier's website |
+  | `minimum_order_quantity` | number (nullable) | no | Minimum number of units per order |
+  | `order_multiple` | number (nullable) | no | Quantity must be a multiple of this value |
+  | `order_uom` | string (nullable) | no | Unit of measurement for ordering (e.g. PCE, CTN) |
+  | `price_to_order_unit_factor` | number (nullable) | no | Conversion factor from price unit to order unit |
+  | `quantity_of_use_units` | number (nullable) | no | Number of use units per order unit |
+  | `smallest_quantity_of_use_units` | number (nullable) | no | Smallest divisible use unit quantity |
+  | `use_unit_uom` | string (nullable) | no | Unit of measurement for use (e.g. MTR, PCE) |
+  | `is_cuttable` | boolean (nullable) | no | True if the trade item can be cut to length |
+  | `cuttable_max_length` | number (nullable) | no | Maximum cuttable length |
+  | `cuttable_max_length_uom` | string (nullable) | no | Unit of measurement for cuttable length (e.g. MMT, MTR) |
+  | `trade_item_weight` | number (nullable) | no | Weight of the trade item |
+  | `trade_item_weight_uom` | string (nullable) | no | Unit of measurement for weight (e.g. KGM, GRM) |
+  | `trade_item_width` | number (nullable) | no | Width of the trade item |
+  | `trade_item_height` | number (nullable) | no | Height of the trade item |
+  | `trade_item_depth` | number (nullable) | no | Depth of the trade item |
+  | `trade_item_dimension_uom` | string (nullable) | no | Unit of measurement for dimensions (e.g. MMT, CMT) |
+  | `trade_item_volume` | number (nullable) | no | Volume of the trade item |
+  | `trade_item_volume_uom` | string (nullable) | no | Unit of measurement for volume (e.g. MLT, LTR) |
+  | `trade_item_package_type_code` | string (nullable) | no | 3-letter GS1 packaging type code |
+  | `trade_item_packages` | integer (nullable) | no | Number of packages in the trade unit |
+  | `packaging_stackable` | integer (nullable) | no | Maximum number of trade units that can be stacked |
+  | `trade_item_package_fragile` | boolean (nullable) | no | True if the package is fragile |
+  | `trade_item_package_best_before` | boolean (nullable) | no | True if the product has a best-before date |
+  | `inherit_product_translations` | boolean (nullable) | no | True to use the parent product's text translations |
+  | `is_orderable` | boolean (nullable) | no | True if the trade item can currently be ordered |
+  | `make_to_stock` | boolean (nullable) | no | True if the trade item is stocked rather than made to order |
+  | `delivery_time` | integer (nullable) | no | Typical delivery time (minimum value) |
+  | `delivery_time_max` | integer (nullable) | no | Maximum delivery time |
+  | `delivery_time_uom` | string (nullable) | no | Unit for delivery time: HOUR, DAY, or WEEK |
+
+  **Example: Create a trade item**. Omit trade_item_id to create; provide it to update an existing trade item.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItem",
+    "params": {
+      "product_id": 123,
+      "supplier_trade_item_code": "SUP-001",
+      "minimum_order_quantity": 1,
+      "order_multiple": 1
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "trade_item_id": 456,
+    "outcome": "applied",
+    "change_request_id": null
+  }
+  ```
+
+  **Example: Propose a trade item edit**. Unchanged submitted fields preserve earlier pending proposals. A no-op returns outcome=no_changes and change_request_id=null.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItem",
+    "params": {
+      "trade_item_id": 456,
+      "supplier_trade_item_code": "SUP-002",
+      "add_to_changes": true
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "trade_item_id": 456,
+    "outcome": "queued_for_review",
+    "change_request_id": 42
+  }
+  ```
+}

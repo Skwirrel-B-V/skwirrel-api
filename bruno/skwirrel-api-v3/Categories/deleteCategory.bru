@@ -1,0 +1,51 @@
+meta {
+  name: deleteCategory
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteCategory",
+    "params": {
+      "product_category_id": 7
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Delete a product category (refused if it has child categories or attached products)
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_category_id` | integer | yes | ID of the category to delete |
+
+  **Example: Delete a category**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteCategory",
+    "params": {
+      "product_category_id": 7
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_category_id": 7
+  }
+  ```
+}

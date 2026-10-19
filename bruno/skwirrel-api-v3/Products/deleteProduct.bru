@@ -1,0 +1,52 @@
+meta {
+  name: deleteProduct
+  type: http
+  seq: 13
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteProduct",
+    "params": {
+      "product_id": 123
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Delete a product
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer (nullable) | no | Internal ID of the product to delete |
+  | `external_product_id` | string (nullable) | no | Your system's reference ID of the product to delete |
+
+  **Example: Delete a product**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteProduct",
+    "params": {
+      "product_id": 123
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123
+  }
+  ```
+}

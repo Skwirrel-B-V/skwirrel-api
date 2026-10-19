@@ -1,0 +1,68 @@
+meta {
+  name: saveTradeItemTranslation
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItemTranslation",
+    "params": {
+      "trade_item_id": 456,
+      "language": "nl",
+      "trade_item_description": "Nieuwe omschrijving",
+      "add_to_changes": true
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Save or propose translated text for an existing trade item; does not change translation inheritance
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `add_to_changes` | boolean | no | Queue an update for review instead of publishing |
+  | `trade_item_id` | integer | yes | Internal ID of the existing trade item |
+  | `language` | string | yes | BCP 47 language code (e.g. nl, nl-BE) |
+  | `context_id` | integer | no | Channel context ID; defaults to 1 |
+  | `trade_item_description` | string (nullable) | no |  |
+  | `trade_item_long_description` | string (nullable) | no |  |
+  | `trade_item_marketing_text` | string (nullable) | no |  |
+  | `trade_item_web_text` | string (nullable) | no |  |
+
+  **Example: Propose Dutch trade item text**. Without add_to_changes, a publishing client receives outcome=applied and change_request_id=null. A no-op proposal returns outcome=no_changes and change_request_id=null.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItemTranslation",
+    "params": {
+      "trade_item_id": 456,
+      "language": "nl",
+      "trade_item_description": "Nieuwe omschrijving",
+      "add_to_changes": true
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "trade_item_id": 456,
+    "language": "nl",
+    "context_id": 1,
+    "outcome": "queued_for_review",
+    "change_request_id": 42
+  }
+  ```
+}

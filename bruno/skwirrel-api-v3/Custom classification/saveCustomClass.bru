@@ -1,0 +1,95 @@
+meta {
+  name: saveCustomClass
+  type: http
+  seq: 6
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomClass",
+    "params": {
+      "custom_class_code": "LOGISTICS",
+      "custom_class_name": "Logistics"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a custom classification class
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `custom_class_id` | integer (nullable) | no | Internal ID of the custom class; omit to create a new class |
+  | `custom_class_code` | string (nullable) | no | Unique code identifying the custom class |
+  | `custom_class_name` | string (nullable) | no | Display name of the custom class |
+  | `is_deprecated` | boolean (nullable) | no | Mark this class as deprecated to hide it from new classifications |
+  | `_features` | object[] (nullable) | no | Feature assignments for this class |
+
+  **Example: Create a custom class**. Use _features to associate features with the class on creation or update.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomClass",
+    "params": {
+      "custom_class_code": "LOGISTICS",
+      "custom_class_name": "Logistics"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_class_id": 1
+  }
+  ```
+
+  **Example: Create a class with features and enum values**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomClass",
+    "params": {
+      "custom_class_code": "COLOUR",
+      "custom_class_name": "Colour",
+      "_features": [
+        {
+          "custom_feature_id": 5,
+          "order_number": 1,
+          "_values": [
+            {
+              "custom_value_id": 10,
+              "order_number": 1
+            },
+            {
+              "custom_value_id": 11,
+              "order_number": 2
+            }
+          ]
+        }
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_class_id": 2
+  }
+  ```
+}

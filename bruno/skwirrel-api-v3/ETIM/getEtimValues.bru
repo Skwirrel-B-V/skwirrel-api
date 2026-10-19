@@ -1,0 +1,75 @@
+meta {
+  name: getEtimValues
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getEtimValues",
+    "params": {
+      "etim_class_code": "EC002713",
+      "etim_feature_code": "EF000006"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve ETIM values with optional translations. Filter by class and/or feature code to get only relevant values.
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–2500) |
+  | `etim_class_code` | string (nullable) | no | Filter to values valid for this ETIM class code (e.g. "EC000001") |
+  | `etim_release` | string (nullable) | no | ETIM release to resolve the class version (e.g. "ETIM-9.0"); used with etim_class_code |
+  | `etim_feature_code` | string (nullable) | no | Filter to values valid for this ETIM feature code (e.g. "EF000001"); A-type features only |
+  | `search_query` | string (nullable) | no | Free-text search on value description or code |
+  | `include_languages` | string[] (nullable) | no | Language codes to include translations for (e.g. ["nl", "en"]) |
+
+  **Example: Values for feature EF000006**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getEtimValues",
+    "params": {
+      "etim_class_code": "EC002713",
+      "etim_feature_code": "EF000006"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "etim_values": [
+      {
+        "etim_value_code": "EV000001"
+      },
+      {
+        "etim_value_code": "EV000002"
+      },
+      {
+        "etim_value_code": "EV000003"
+      }
+    ],
+    "page": {
+      "number_of_items": 3,
+      "items_per_page": 100,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

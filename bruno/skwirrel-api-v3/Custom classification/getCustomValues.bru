@@ -1,0 +1,69 @@
+meta {
+  name: getCustomValues
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getCustomValues",
+    "params": {
+      "limit": 3
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve custom feature values
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `include_value_translations` | boolean | no | Include translated value names; requires include_languages |
+  | `include_languages` | string[] (nullable) | no | Language codes to include in translations (e.g. ["nl", "fr"]) |
+
+  **Example: All custom values**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getCustomValues",
+    "params": {
+      "limit": 3
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_values": [
+      {
+        "custom_value_id": 1,
+        "custom_value_code": "RED"
+      },
+      {
+        "custom_value_id": 2,
+        "custom_value_code": "BLUE"
+      }
+    ],
+    "page": {
+      "number_of_items": 2,
+      "items_per_page": 3,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

@@ -1,0 +1,77 @@
+meta {
+  name: getDenormalizedCustomClassData
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getDenormalizedCustomClassData",
+    "params": {
+      "include_languages": [
+        "nl"
+      ],
+      "limit": 2
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve denormalized custom classification data for bulk export
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `include_languages` | string[] | yes | Language codes to include (e.g. ["nl", "fr"]); at least one required |
+  | `include_feature_types` | string[] (nullable) | no | Only include these custom feature types (e.g. ["A", "N", "L", "R"]) |
+
+  **Example: Custom class features for products**. include_languages is required.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getDenormalizedCustomClassData",
+    "params": {
+      "include_languages": [
+        "nl"
+      ],
+      "limit": 2
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "denormalized_custom_class_data": [
+      {
+        "product_id": 1,
+        "custom_class_code": "LOGISTICS",
+        "custom_feature_code": "WEIGHT_NET",
+        "custom_feature_type": "N",
+        "numeric_value": 0.5,
+        "custom_value_code": null,
+        "logical_value": null,
+        "not_applicable": false
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 2,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

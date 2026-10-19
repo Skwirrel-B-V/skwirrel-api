@@ -1,0 +1,74 @@
+meta {
+  name: getGroupedProducts
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getGroupedProducts",
+    "params": {
+      "page": 1,
+      "limit": 3
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve products grouped under a product group
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `grouped_product_id` | integer[] (nullable) | no | Filter by grouped product IDs |
+  | `virtual_product_id` | integer[] (nullable) | no | Filter by virtual product IDs attached to grouped products |
+  | `product_id` | integer[] (nullable) | no | Filter by product IDs that are members of a grouped product |
+  | `include_products` | boolean | no | Include the individual products within each grouped product |
+  | `include_categories` | boolean | no | Include categories bound to the grouped product |
+  | `include_etim_features` | boolean | no | Include ETIM features bound to the grouped product |
+  | `include_custom_features` | boolean | no | Include custom features bound to the grouped product |
+
+  **Example: First page of grouped products**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getGroupedProducts",
+    "params": {
+      "page": 1,
+      "limit": 3
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "grouped_products": [
+      {
+        "grouped_product_id": 1,
+        "product_id": null,
+        "grouped_product_code": "GRP001",
+        "grouped_product_name": "Cable set"
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 3,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

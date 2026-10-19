@@ -1,0 +1,58 @@
+meta {
+  name: saveTradeItemCustomGroup
+  type: http
+  seq: 6
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItemCustomGroup",
+    "params": {
+      "product_group_id": 1,
+      "trade_item_id": 456,
+      "_delete": false
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Assign or remove a trade item from a custom product group
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_group_id` | integer | yes | Internal ID of the product group |
+  | `trade_item_id` | integer | yes | Internal ID of the trade item |
+  | `_delete` | boolean (nullable) | no | Set to true to remove the trade item from the group |
+
+  **Example: Add trade item to custom group**. Set _delete=true to remove the trade item from the group.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItemCustomGroup",
+    "params": {
+      "product_group_id": 1,
+      "trade_item_id": 456,
+      "_delete": false
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_group_id": 1,
+    "trade_item_id": 456
+  }
+  ```
+}

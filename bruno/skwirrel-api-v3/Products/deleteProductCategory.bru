@@ -1,0 +1,55 @@
+meta {
+  name: deleteProductCategory
+  type: http
+  seq: 14
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteProductCategory",
+    "params": {
+      "product_id": 123,
+      "product_category_id": 7
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Unlink a product from a category
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer | yes | ID of the product to unlink from the category |
+  | `product_category_id` | integer | yes | ID of the category to unlink the product from |
+
+  **Example: Remove product from category**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteProductCategory",
+    "params": {
+      "product_id": 123,
+      "product_category_id": 7
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "product_category_id": 7
+  }
+  ```
+}

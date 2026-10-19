@@ -1,0 +1,66 @@
+meta {
+  name: getWebHooks
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getWebHooks",
+    "params": {},
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve all registered webhooks (credentials omitted)
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+
+  **Example: List webhooks**. Credentials (password) are never returned.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getWebHooks",
+    "params": {},
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "web_hooks": [
+      {
+        "web_hook_id": 1,
+        "external_web_hook_id": "my-hook",
+        "web_hook_url": "https://example.com/hook",
+        "auth_type": "none",
+        "entity_names": [
+          "product"
+        ],
+        "is_active": true,
+        "is_editable": true
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 100,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

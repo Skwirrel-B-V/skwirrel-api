@@ -1,0 +1,82 @@
+meta {
+  name: getAttachments
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getAttachments",
+    "params": {
+      "page": 1,
+      "limit": 3
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve document attachments
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `product_attachment_id` | integer[] (nullable) | no | Filter by internal attachment IDs |
+  | `attachment_collection_id` | integer[] (nullable) | no | Filter by attachment collection IDs |
+  | `file_sha256_checksum` | string (nullable) | no | Filter by exact SHA-256 checksum of the attachment file (64 hex characters) |
+  | `include_attachment_types` | string[] (nullable) | no | Only include attachments of these types; omit to include all types |
+  | `include_internal_attachments` | boolean | no | Include internal (non-public) attachments |
+  | `include_attachment_translations` | boolean | no | Include translated attachment names; requires include_languages |
+  | `include_attachment_attributes` | boolean | no | Include attachment attribute metadata |
+  | `include_attachment_categories` | boolean | no | Include categories linked to each attachment |
+  | `include_attachment_collections` | boolean | no | Include collection memberships for each attachment |
+  | `include_products` | boolean | no | Include products linked to each attachment |
+  | `include_custom_classes` | boolean | no | Include custom classification data for each attachment |
+  | `include_custom_class_id` | integer[] (nullable) | no | Only include custom classes with these IDs |
+  | `include_custom_collection_id` | integer[] (nullable) | no | Only include custom classes from these collection IDs |
+  | `include_languages` | string[] (nullable) | no | Language codes to include in translations (e.g. ["nl", "fr"]) |
+
+  **Example: First page of attachments**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getAttachments",
+    "params": {
+      "page": 1,
+      "limit": 3
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_attachments": [
+      {
+        "product_attachment_id": 1,
+        "product_attachment_type_code": "MAN",
+        "source_type": "URL",
+        "source_url": "https://example.com/manual.pdf",
+        "for_internal_use": false
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 3,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

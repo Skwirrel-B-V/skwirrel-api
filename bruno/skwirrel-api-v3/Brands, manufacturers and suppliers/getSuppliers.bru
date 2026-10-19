@@ -1,0 +1,64 @@
+meta {
+  name: getSuppliers
+  type: http
+  seq: 7
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getSuppliers",
+    "params": {},
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve suppliers
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `supplier_id` | integer[] (nullable) | no | Filter by internal supplier IDs |
+  | `external_supplier_id` | string[] (nullable) | no | Filter by supplier code (the supplier's external reference) |
+
+  **Example: All suppliers**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getSuppliers",
+    "params": {},
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "suppliers": [
+      {
+        "supplier_id": 1,
+        "external_supplier_id": "MAIN",
+        "supplier_name": "Main Supplier",
+        "country_code": "NL",
+        "gln": "9876543210123"
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 1000,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

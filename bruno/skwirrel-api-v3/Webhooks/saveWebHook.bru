@@ -1,0 +1,70 @@
+meta {
+  name: saveWebHook
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveWebHook",
+    "params": {
+      "external_web_hook_id": "my-hook",
+      "web_hook_url": "https://example.com/hook",
+      "entity_names": [
+        "product"
+      ],
+      "is_active": true
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a webhook subscription for entity change notifications
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `web_hook_id` | integer (nullable) | no | Internal ID of the webhook; omit to create a new webhook |
+  | `external_web_hook_id` | string (nullable) | no | Your system's reference ID for the webhook |
+  | `web_hook_url` | string (nullable) | no | HTTPS URL that will receive webhook POST requests |
+  | `web_hook_headers` | object[] (nullable) | no | Custom HTTP headers to include in webhook requests |
+  | `auth_type` | string (nullable) | no | HTTP authentication type: DIGEST, BASIC, or NTLM |
+  | `username` | string (nullable) | no | Username for HTTP authentication |
+  | `password` | string (nullable) | no | Password for HTTP authentication |
+  | `entity_names` | string[] (nullable) | no | Entity types that trigger this webhook (e.g. product, brand) |
+  | `is_active` | boolean (nullable) | no | True to enable the webhook; false to pause delivery |
+
+  **Example: Register a webhook**. Use external_web_hook_id to upsert; the same call creates or updates the webhook.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveWebHook",
+    "params": {
+      "external_web_hook_id": "my-hook",
+      "web_hook_url": "https://example.com/hook",
+      "entity_names": [
+        "product"
+      ],
+      "is_active": true
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "web_hook_id": 1,
+    "external_web_hook_id": "my-hook"
+  }
+  ```
+}

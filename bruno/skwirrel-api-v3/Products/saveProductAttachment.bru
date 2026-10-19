@@ -1,0 +1,66 @@
+meta {
+  name: saveProductAttachment
+  type: http
+  seq: 10
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductAttachment",
+    "params": {
+      "product_id": 123,
+      "_attachments": [
+        {
+          "product_attachment_id": 1,
+          "order": 1,
+          "_delete": false
+        }
+      ]
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Link or reorder document attachments on a product
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer | yes | Internal ID of the product to update attachments for |
+  | `_attachments` | object[] | yes | List of attachments to link, reorder, or unlink |
+
+  **Example: Link attachment to product**. Set _delete=true on an attachment entry to unlink it from the product.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductAttachment",
+    "params": {
+      "product_id": 123,
+      "_attachments": [
+        {
+          "product_attachment_id": 1,
+          "order": 1,
+          "_delete": false
+        }
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123
+  }
+  ```
+}

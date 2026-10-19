@@ -1,0 +1,75 @@
+meta {
+  name: getCustomClasses
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getCustomClasses",
+    "params": {
+      "page": 1,
+      "limit": 3
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve custom classification classes
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `custom_class_id` | integer[] (nullable) | no | Filter by internal custom class IDs |
+  | `custom_class_code` | string[] (nullable) | no | Filter by custom class codes |
+  | `custom_collection_id` | integer[] (nullable) | no | Filter by custom collection IDs |
+  | `include_class_collections` | boolean | no | Include class collection memberships in the response |
+  | `include_feature_translations` | boolean | no | Include translated feature names; requires include_languages |
+  | `include_unit_translations` | boolean | no | Include translated unit names; requires include_languages |
+  | `include_value_translations` | boolean | no | Include translated value names; requires include_languages |
+  | `include_languages` | string[] (nullable) | no | Language codes to include in translations (e.g. ["nl", "fr"]) |
+
+  **Example: All custom classes**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getCustomClasses",
+    "params": {
+      "page": 1,
+      "limit": 3
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_classes": [
+      {
+        "custom_class_id": 1,
+        "custom_class_code": "LOGISTICS",
+        "custom_class_name": "Logistics",
+        "is_deprecated": false
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 3,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

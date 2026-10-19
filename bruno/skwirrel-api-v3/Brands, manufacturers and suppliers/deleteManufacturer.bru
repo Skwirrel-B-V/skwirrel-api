@@ -1,0 +1,53 @@
+meta {
+  name: deleteManufacturer
+  type: http
+  seq: 6
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteManufacturer",
+    "params": {
+      "manufacturer_id": 10
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Delete a manufacturer, optionally reassigning its products to another manufacturer
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `manufacturer_id` | integer (nullable) | no | Internal ID of the manufacturer to delete |
+  | `external_manufacturer_id` | string (nullable) | no | Your system's reference ID of the manufacturer to delete |
+  | `reassign_manufacturer_id` | integer (nullable) | no | ID of the manufacturer to reassign its products to before deletion |
+
+  **Example: Delete a manufacturer**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteManufacturer",
+    "params": {
+      "manufacturer_id": 10
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "manufacturer_id": 10
+  }
+  ```
+}

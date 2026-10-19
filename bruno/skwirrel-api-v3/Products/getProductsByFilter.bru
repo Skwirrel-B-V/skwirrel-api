@@ -1,0 +1,26 @@
+meta {
+  name: getProductsByFilter
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getProductsByFilter",
+    "params": {},
+    "id": 1
+  }
+}
+
+docs {
+  Alias of getProducts, kept for backward compatibility with v2 integrations
+
+  No parameters.
+}

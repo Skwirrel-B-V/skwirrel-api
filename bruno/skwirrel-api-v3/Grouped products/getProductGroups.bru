@@ -1,0 +1,73 @@
+meta {
+  name: getProductGroups
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getProductGroups",
+    "params": {
+      "product_group_type": [
+        "ALLOWANCE"
+      ]
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve product groups
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `product_group_id` | integer[] (nullable) | no | Filter by internal product group IDs |
+  | `product_group_type` | string[] (nullable) | no | Filter by group type: ALLOWANCE, BUYING, or CUSTOM |
+  | `product_group_code` | string[] (nullable) | no | Filter by product group codes |
+
+  **Example: Allowance groups**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getProductGroups",
+    "params": {
+      "product_group_type": [
+        "ALLOWANCE"
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_groups": [
+      {
+        "product_group_id": 1,
+        "product_group_type": "ALLOWANCE",
+        "product_group_code": "001",
+        "product_group_name": "Kabelbinders",
+        "product_group_comment": ""
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 1000,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

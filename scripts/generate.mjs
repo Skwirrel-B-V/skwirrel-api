@@ -114,7 +114,8 @@ export function typeLabel(schema = {}) {
 	if (schema.$ref) return schema.$ref.split('/').pop();
 	const union = schema.oneOf ?? schema.anyOf;
 	if (union) {
-		const label = union.filter((s) => !isNull(s)).map(typeLabel).join(' | ') || 'null';
+		const label = union.filter((s) => !isNull(s)).map(typeLabel).join(' | ');
+		if (!label) return 'null';
 		return union.some(isNull) ? `${label} (nullable)` : label;
 	}
 	const types = [].concat(schema.type ?? 'any').filter((t) => t !== 'null');
@@ -307,9 +308,11 @@ function buildOpenApi(methods) {
 			responses: {
 				Unauthorized: errorResponse('Wrong, expired or missing token.', -32001, 'Unauthorized', 'Failed to authenticate client'),
 				TooManyRequests: {
-					...errorResponse('Too many requests from this client. Wait the number of seconds in Retry-After.', -32029, 'Too many requests', 'Rate limit of 600 calls per minute exceeded'),
+					...errorResponse('Too many requests: the per-client limit, or for calls without a valid token the per-IP limit, was reached. Wait the number of seconds in Retry-After.', -32029, 'Too many requests', 'Rate limit of 600 calls per minute exceeded'),
 					headers: {
 						'Retry-After': { description: 'Seconds to wait before retrying', schema: { type: 'integer' } },
+						'X-RateLimit-Limit': { description: 'Calls allowed per minute', schema: { type: 'integer' } },
+						'X-RateLimit-Remaining': { description: 'Calls left in the current minute', schema: { type: 'integer' } },
 					},
 				},
 				Forbidden: errorResponse('The client has no grant for this method.', -32002, 'Method is forbidden', 'Method <method> (v3) is not allowed for this client'),
@@ -577,12 +580,17 @@ async function fetchDiscover(baseUrl) {
  * Writes everything into a staging folder first. Only when all files are there
  * are the old output folders moved aside and the new ones moved in; if a move
  * fails, the old folders are put back. Either the old or the new docs remain.
+ * If even putting them back fails, the staging folder (with the old docs in its
+ * `.previous` folder) is kept and its path is in the error.
+ *
+ * `rename` is only replaceable so tests can make a move fail.
  */
-export function writeAll(files, outDir) {
+export function writeAll(files, outDir, rename = renameSync) {
 	mkdirSync(outDir, { recursive: true });
 	const staging = mkdtempSync(join(outDir, '.generate-'));
 	const backup = join(staging, '.previous');
 	const swapped = [];
+	let keepStaging = false;
 	try {
 		for (const [path, content] of Object.entries(files)) {
 			const target = join(staging, path);
@@ -594,19 +602,27 @@ export function writeAll(files, outDir) {
 
 		mkdirSync(backup);
 		for (const dir of OUTPUT_DIRS) {
-			if (existsSync(join(outDir, dir))) renameSync(join(outDir, dir), join(backup, dir));
+			if (existsSync(join(outDir, dir))) rename(join(outDir, dir), join(backup, dir));
 			swapped.push(dir);
-			renameSync(join(staging, dir), join(outDir, dir));
+			rename(join(staging, dir), join(outDir, dir));
 		}
 	} catch (error) {
+		const restoreFailures = [];
 		for (const dir of swapped.reverse()) {
-			if (!existsSync(join(backup, dir))) continue;
-			rmSync(join(outDir, dir), { recursive: true, force: true });
-			renameSync(join(backup, dir), join(outDir, dir));
+			try {
+				rmSync(join(outDir, dir), { recursive: true, force: true });
+				if (existsSync(join(backup, dir))) rename(join(backup, dir), join(outDir, dir));
+			} catch (restoreError) {
+				restoreFailures.push(`${dir}: ${restoreError.message}`);
+			}
+		}
+		if (restoreFailures.length) {
+			keepStaging = true;
+			throw new Error(`${error.message}\nRestoring the previous docs failed (${restoreFailures.join('; ')}). They are kept in ${backup}`);
 		}
 		throw error;
 	} finally {
-		rmSync(staging, { recursive: true, force: true });
+		if (!keepStaging) rmSync(staging, { recursive: true, force: true });
 	}
 }
 

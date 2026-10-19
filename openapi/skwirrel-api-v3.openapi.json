@@ -13395,7 +13395,7 @@
         }
       },
       "TooManyRequests": {
-        "description": "Too many requests from this client. Wait the number of seconds in Retry-After.",
+        "description": "Too many requests: the per-client limit, or for calls without a valid token the per-IP limit, was reached. Wait the number of seconds in Retry-After.",
         "content": {
           "application/json": {
             "schema": {
@@ -13415,6 +13415,18 @@
         "headers": {
           "Retry-After": {
             "description": "Seconds to wait before retrying",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Limit": {
+            "description": "Calls allowed per minute",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Remaining": {
+            "description": "Calls left in the current minute",
             "schema": {
               "type": "integer"
             }

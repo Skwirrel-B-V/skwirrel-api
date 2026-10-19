@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, mkdtempSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, mkdtempSync, writeFileSync, readdirSync, existsSync, renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
-import { buildAll, typeLabel, writeAll } from '../scripts/generate.mjs';
+import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
+import { buildAll, typeLabel, writeAll } from '../scripts/generate.mjs';
 import { DOMAINS } from '../scripts/domains.mjs';
 
 const fixturePath = new URL('./fixtures/rpc-discover-v3.json', import.meta.url);
@@ -187,6 +187,7 @@ test('typeLabel reads unions, nullables and lists correctly', () => {
 	assert.equal(typeLabel({ type: 'array', items: { type: 'integer' } }), 'integer[]');
 	assert.equal(typeLabel({ $ref: '#/components/schemas/Product' }), 'Product');
 	assert.equal(typeLabel({ type: 'null' }), 'null');
+	assert.equal(typeLabel({ oneOf: [{ type: 'null' }] }), 'null');
 });
 
 test('a method without params still builds', () => {
@@ -211,7 +212,6 @@ test('CLI explains a non-JSON answer and leaves files alone', async () => {
 	await new Promise((r) => server.listen(0, '127.0.0.1', r));
 	const out = mkdtempSync(join(tmpdir(), 'skw-api-'));
 	try {
-		const { spawn } = await import('node:child_process');
 		const child = spawn(process.execPath, [cli, '--url', `http://127.0.0.1:${server.address().port}`, '--out', out]);
 		let stderr = '';
 		child.stderr.on('data', (d) => { stderr += d; });
@@ -236,4 +236,36 @@ test('OpenAPI documents the 429 rate limit response with Retry-After', () => {
 	assert.equal(tooMany.content['application/json'].example.error.code, -32029);
 	assert.ok(tooMany.headers['Retry-After']);
 	for (const path of Object.values(api.paths)) assert.ok(path.post.responses['429']);
+});
+
+test('writeAll puts the previous docs back when a move fails halfway', () => {
+	const out = mkdtempSync(join(tmpdir(), 'skw-api-'));
+	writeAll(buildAll(discover()), out);
+	const before = readFileSync(join(out, 'postman/skwirrel-api-v3.postman_collection.json'), 'utf8');
+	let moves = 0;
+	const failingRename = (from, to) => {
+		moves += 1;
+		if (moves === 5) throw new Error('disk full');
+		renameSync(from, to);
+	};
+	const changed = buildAll(discover());
+	changed['postman/skwirrel-api-v3.postman_collection.json'] = '{}';
+	assert.throws(() => writeAll(changed, out, failingRename), /disk full/);
+	assert.equal(readFileSync(join(out, 'postman/skwirrel-api-v3.postman_collection.json'), 'utf8'), before);
+	assert.deepEqual(readdirSync(out).sort(), ['bruno', 'openapi', 'openrpc', 'postman']);
+});
+
+test('writeAll keeps the old docs on disk when putting them back fails too', () => {
+	const out = mkdtempSync(join(tmpdir(), 'skw-api-'));
+	writeAll(buildAll(discover()), out);
+	let moves = 0;
+	const failingRename = (from, to) => {
+		moves += 1;
+		if (moves >= 3) throw new Error('locked');
+		renameSync(from, to);
+	};
+	assert.throws(() => writeAll(buildAll(discover()), out, failingRename), /kept in .*\.previous/);
+	const staging = readdirSync(out).find((name) => name.startsWith('.generate-'));
+	assert.ok(staging, 'staging folder is kept');
+	assert.ok(existsSync(join(out, staging, '.previous', 'openrpc')), 'old openrpc docs are kept');
 });

@@ -47,7 +47,7 @@ Errors come back as a JSON-RPC `error` object instead of `result`, with a matchi
 { "jsonrpc": "2.0", "error": { "code": -32001, "message": "Unauthorized", "data": "Failed to authenticate client" }, "id": 1 }
 ```
 
-`error.data` adds detail, for example `Failed to authenticate client` (wrong or expired token) or `No client has been authorized` (no token sent). Ask your administrator to grant a method if you need it. On 429, wait the number of seconds in the `Retry-After` response header before retrying. Every authenticated call returns `X-RateLimit-Limit` and `X-RateLimit-Remaining` (calls per minute; the default limit is 600), so you can slow down before you hit it.
+`error.data` adds detail, for example `Failed to authenticate client` (wrong or expired token) or `No client has been authorized` (no token sent). Ask your administrator to grant a method if you need it. On 429, wait the number of seconds in the `Retry-After` response header before retrying. Calls return `X-RateLimit-Limit` and `X-RateLimit-Remaining` (calls per minute), so you can slow down before you hit the limit. The limit is per client (600 by default); calls without a valid token count against a separate limit per IP address.
 
 ## Your first request
 

@@ -77,6 +77,15 @@ test('Swagger UI page embeds the spec so it opens from disk', () => {
 	const html = buildAll(discover())['openapi/index.html'];
 	assert.match(html, /SwaggerUIBundle/);
 	assert.match(html, /"operationId":"getProducts"/);
+	assert.equal((html.match(/integrity="sha384-/g) ?? []).length, 2, 'both CDN files carry an SRI hash');
+});
+
+test('collections explain the error codes, including rate limiting', () => {
+	const files = buildAll(discover());
+	const col = JSON.parse(files['postman/skwirrel-api-v3.postman_collection.json']);
+	for (const text of [col.info.description, files['bruno/skwirrel-api-v3/collection.bru']]) {
+		for (const code of ['-32001', '-32002', '-32029']) assert.ok(text.includes(code), code);
+	}
 });
 
 test('Postman: 62 requests in domain folders, version header, static token auth, two clean environments', () => {
@@ -93,12 +102,13 @@ test('Postman: 62 requests in domain folders, version header, static token auth,
 		assert.ok(!('token' in body.params), r.name);
 	}
 	assert.equal(col.auth.type, 'apikey');
-	for (const env of ['production', 'development']) {
+	for (const env of ['Production', 'Development']) {
 		const e = JSON.parse(files[`postman/environments/${env}.postman_environment.json`]);
 		const vals = Object.fromEntries(e.values.map((v) => [v.key, v.value]));
 		assert.equal(vals.customer, 'demo');
 		assert.equal(vals.api_token, '');
 		assert.equal(vals.client_secret, '');
+		assert.deepEqual(e.values.filter((v) => v.type === 'secret').map((v) => v.key), ['api_token', 'client_id', 'client_secret']);
 	}
 });
 
@@ -140,6 +150,25 @@ test('CLI fails on a JSON-RPC error and leaves existing files alone', () => {
 	assert.notEqual(r.status, 0);
 	assert.match(r.stderr, /Method not found/);
 	assert.deepEqual(readdirSync(out), ['error.json']);
+});
+
+test('CLI leaves no staging folder behind', () => {
+	const out = mkdtempSync(join(tmpdir(), 'skw-api-'));
+	const r = spawnSync(process.execPath, [cli, '--input', fixturePath.pathname, '--out', out], { encoding: 'utf8' });
+	assert.equal(r.status, 0, r.stderr);
+	assert.deepEqual(readdirSync(out).sort(), ['bruno', 'openapi', 'openrpc', 'postman']);
+});
+
+test('CLI prints usage on --help and rejects unknown or repeated options', () => {
+	const help = spawnSync(process.execPath, [cli, '--help'], { encoding: 'utf8' });
+	assert.equal(help.status, 0);
+	assert.match(help.stdout, /Usage:/);
+	const bare = spawnSync(process.execPath, [cli, 'input', 'x.json'], { encoding: 'utf8' });
+	assert.notEqual(bare.status, 0);
+	assert.match(bare.stderr, /Unknown or incomplete option "input"/);
+	const twice = spawnSync(process.execPath, [cli, '--input', 'a', '--input', 'b'], { encoding: 'utf8' });
+	assert.notEqual(twice.status, 0);
+	assert.match(twice.stderr, /given twice/);
 });
 
 test('CLI fails clearly when core is unreachable', () => {

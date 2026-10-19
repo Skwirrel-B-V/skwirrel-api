@@ -3,7 +3,7 @@
   "info": {
     "title": "Skwirrel PIM API",
     "version": "3.0.0",
-    "description": "Skwirrel PIM API, version 3. JSON-RPC 2.0 over HTTPS.\n\n- Every call is `POST https://{customer}.skwirrel.eu/jsonrpc` (production) or `https://{customer}.skwirrel.dev/jsonrpc` (dev/test). The method name goes in the request body.\n- Send the header `X-Skwirrel-Api-Version: 3`. Without it, core answers with the latest version.\n- Authenticate with a static token in the header `X-Skwirrel-Api-Token` (default), or with OAuth2 client credentials: `POST /oauth2/token` with `grant_type=client_credentials`, `client_id` and `client_secret`, then send `Authorization: Bearer <access_token>`. Access tokens are valid for one hour.\n- A Skwirrel administrator grants access per method. Without a grant, or with a wrong token, the call returns a JSON-RPC error.\n\nJSON-RPC has one URL for all methods. Each method is listed here as `/jsonrpc#<method>`: the part after `#` is never sent, so every call goes to `POST /jsonrpc`.",
+    "description": "Skwirrel PIM API, version 3. JSON-RPC 2.0 over HTTPS.\n\n- Every call is `POST https://{customer}.skwirrel.eu/jsonrpc` (production) or `https://{customer}.skwirrel.dev/jsonrpc` (dev/test). The method name goes in the request body.\n- Send the header `X-Skwirrel-Api-Version: 3`. Without it, core answers with the latest version.\n- Authenticate with a static token in the header `X-Skwirrel-Api-Token` (default), or with OAuth2 client credentials: `POST /oauth2/token` with `grant_type=client_credentials`, `client_id` and `client_secret`, then send `Authorization: Bearer <access_token>`. Access tokens are valid for one hour.\n- A Skwirrel administrator grants access per method.\n\nErrors come back as a JSON-RPC `error` object instead of `result`:\n\n| Situation | HTTP | error.code | error.message |\n|---|---|---|---|\n| Wrong, expired or missing token | 401 | -32001 | Unauthorized |\n| No grant for this method | 403 | -32002 | Method is forbidden |\n| Too many requests | 429 | -32029 | Too many requests |\n\nJSON-RPC has one URL for all methods. Each method is listed here as `/jsonrpc#<method>`: the part after `#` is never sent, so every call goes to `POST /jsonrpc`.\n\nUse this page to browse the API. Sending requests from it (Try it out) only works when your Skwirrel environment allows cross-origin requests; otherwise use curl, Postman or Bruno.",
     "license": {
       "name": "Apache 2.0",
       "identifier": "Apache-2.0"
@@ -13220,7 +13220,7 @@
               "error": {
                 "code": -32002,
                 "message": "Method is forbidden",
-                "data": "Method getProducts (v3) is not allowed for this client"
+                "data": "Method <method> (v3) is not allowed for this client"
               },
               "id": 1
             }

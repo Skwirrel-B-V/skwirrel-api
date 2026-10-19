@@ -26,7 +26,15 @@ docs {
   - Every call is `POST https://{customer}.skwirrel.eu/jsonrpc` (production) or `https://{customer}.skwirrel.dev/jsonrpc` (dev/test). The method name goes in the request body.
   - Send the header `X-Skwirrel-Api-Version: 3`. Without it, core answers with the latest version.
   - Authenticate with a static token in the header `X-Skwirrel-Api-Token` (default), or with OAuth2 client credentials: `POST /oauth2/token` with `grant_type=client_credentials`, `client_id` and `client_secret`, then send `Authorization: Bearer <access_token>`. Access tokens are valid for one hour.
-  - A Skwirrel administrator grants access per method. Without a grant, or with a wrong token, the call returns a JSON-RPC error.
+  - A Skwirrel administrator grants access per method.
+
+  Errors come back as a JSON-RPC `error` object instead of `result`:
+
+  | Situation | HTTP | error.code | error.message |
+  |---|---|---|---|
+  | Wrong, expired or missing token | 401 | -32001 | Unauthorized |
+  | No grant for this method | 403 | -32002 | Method is forbidden |
+  | Too many requests | 429 | -32029 | Too many requests |
 
   **Getting started:** pick the Production or Development environment, set `customer` to your tenant name and the secret `api_token` to your static token.
 

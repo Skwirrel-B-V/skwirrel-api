@@ -7,7 +7,7 @@
 // Writes openrpc/, openapi/, postman/ and bruno/ (all generated, never edit by
 // hand). Nothing is written unless the whole build succeeds.
 
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DOMAINS } from './domains.mjs';
@@ -16,10 +16,17 @@ const API_VERSION = '3';
 const TITLE = 'Skwirrel PIM API';
 const OUTPUT_DIRS = ['openrpc', 'openapi', 'postman', 'bruno'];
 const SWAGGER_UI_VERSION = '5.17.14';
+// Subresource Integrity for exactly this version, so a tampered CDN file is refused.
+const SWAGGER_UI_SRI = {
+	css: 'sha384-wxLW6kwyHktdDGr6Pv1zgm/VGJh99lfUbzSn6HNHBENZlCN7W602k9VkGdxuFvPn',
+	js: 'sha384-wmyclcVGX/WhUkdkATwhaK1X1JtiNrr2EoYJ+diV3vj4v6OC5yCeSu+yW13SYJep',
+};
+const DEFAULT_CUSTOMER = 'demo';
+const FETCH_TIMEOUT_MS = 30_000;
 
 const ENVIRONMENTS = [
-	{ key: 'production', label: 'Production', domain: 'skwirrel.eu' },
-	{ key: 'development', label: 'Development', domain: 'skwirrel.dev' },
+	{ label: 'Production', domain: 'skwirrel.eu' },
+	{ label: 'Development', domain: 'skwirrel.dev' },
 ];
 
 const URL_TEMPLATE = 'https://{{customer}}.{{domain}}/jsonrpc';
@@ -30,7 +37,24 @@ const INTRO = `Skwirrel PIM API, version 3. JSON-RPC 2.0 over HTTPS.
 - Every call is \`POST https://{customer}.skwirrel.eu/jsonrpc\` (production) or \`https://{customer}.skwirrel.dev/jsonrpc\` (dev/test). The method name goes in the request body.
 - Send the header \`X-Skwirrel-Api-Version: 3\`. Without it, core answers with the latest version.
 - Authenticate with a static token in the header \`X-Skwirrel-Api-Token\` (default), or with OAuth2 client credentials: \`POST /oauth2/token\` with \`grant_type=client_credentials\`, \`client_id\` and \`client_secret\`, then send \`Authorization: Bearer <access_token>\`. Access tokens are valid for one hour.
-- A Skwirrel administrator grants access per method. Without a grant, or with a wrong token, the call returns a JSON-RPC error.`;
+- A Skwirrel administrator grants access per method.
+
+Errors come back as a JSON-RPC \`error\` object instead of \`result\`:
+
+| Situation | HTTP | error.code | error.message |
+|---|---|---|---|
+| Wrong, expired or missing token | 401 | -32001 | Unauthorized |
+| No grant for this method | 403 | -32002 | Method is forbidden |
+| Too many requests | 429 | -32029 | Too many requests |`;
+
+const customerVariable = () => ({ customer: { default: DEFAULT_CUSTOMER, description: 'Your Skwirrel tenant name' } });
+
+/** How to start in Postman or Bruno; only the tool-specific OAuth2 clicks differ. */
+const gettingStarted = (oauthSteps) => `${INTRO}
+
+**Getting started:** pick the Production or Development environment, set \`customer\` to your tenant name and the secret \`api_token\` to your static token.
+
+**OAuth2 instead:** ${oauthSteps}`;
 
 // ---------------------------------------------------------------- input
 
@@ -80,7 +104,13 @@ function envelope(method, params) {
 	return { jsonrpc: '2.0', method, params, id: 1 };
 }
 
+function resultEnvelope(result) {
+	return { jsonrpc: '2.0', result, id: 1 };
+}
+
 function typeLabel(schema = {}) {
+	if (schema.$ref) return schema.$ref.split('/').pop();
+	if (schema.oneOf || schema.anyOf) return (schema.oneOf ?? schema.anyOf).map(typeLabel).join(' | ');
 	const types = [].concat(schema.type ?? 'any').filter((t) => t !== 'null');
 	const nullable = [].concat(schema.type ?? []).includes('null');
 	const label = types
@@ -94,9 +124,10 @@ const cell = (text) => String(text ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g
 /** Markdown description of a method: what it does, its parameters and examples. */
 function methodDocs(method) {
 	const lines = [method.description || '', ''];
-	if (method.params.length) {
+	const params = method.params ?? [];
+	if (params.length) {
 		lines.push('| Parameter | Type | Required | Description |', '|---|---|---|---|');
-		for (const p of method.params) {
+		for (const p of params) {
 			lines.push(`| \`${p.name}\` | ${cell(typeLabel(p.schema))} | ${p.required ? 'yes' : 'no'} | ${cell(p.description)} |`);
 		}
 	} else {
@@ -120,7 +151,7 @@ function buildOpenRpc(doc, methods) {
 		servers: ENVIRONMENTS.map((env) => ({
 			name: env.label,
 			url: `https://{customer}.${env.domain}/jsonrpc`,
-			variables: { customer: { default: 'demo', description: 'Your Skwirrel tenant name' } },
+			variables: customerVariable(),
 		})),
 		methods: methods.map(({ domain, method }) => ({
 			name: method.name,
@@ -134,10 +165,11 @@ function buildOpenRpc(doc, methods) {
 
 function paramsSchema(method) {
 	const schema = { type: 'object', properties: {} };
-	for (const p of method.params) {
+	const params = method.params ?? [];
+	for (const p of params) {
 		schema.properties[p.name] = { ...p.schema, ...(p.description ? { description: p.description } : {}) };
 	}
-	const required = method.params.filter((p) => p.required).map((p) => p.name);
+	const required = params.filter((p) => p.required).map((p) => p.name);
 	if (required.length) schema.required = required;
 	return schema;
 }
@@ -164,7 +196,7 @@ function buildOpenApi(methods) {
 			const key = `example${i + 1}`;
 			requestExamples[key] = { summary: ex.name, value: envelope(method.name, exampleParams(ex)) };
 			if (ex.result) {
-				responseExamples[key] = { summary: ex.name, value: { jsonrpc: '2.0', result: ex.result.value, id: 1 } };
+				responseExamples[key] = { summary: ex.name, value: resultEnvelope(ex.result.value) };
 			}
 		});
 		if (!examples.length) {
@@ -236,13 +268,13 @@ function buildOpenApi(methods) {
 		info: {
 			title: TITLE,
 			version: `${API_VERSION}.0.0`,
-			description: `${INTRO}\n\nJSON-RPC has one URL for all methods. Each method is listed here as \`/jsonrpc#<method>\`: the part after \`#\` is never sent, so every call goes to \`POST /jsonrpc\`.`,
+			description: `${INTRO}\n\nJSON-RPC has one URL for all methods. Each method is listed here as \`/jsonrpc#<method>\`: the part after \`#\` is never sent, so every call goes to \`POST /jsonrpc\`.\n\nUse this page to browse the API. Sending requests from it (Try it out) only works when your Skwirrel environment allows cross-origin requests; otherwise use curl, Postman or Bruno.`,
 			license: { name: 'Apache 2.0', identifier: 'Apache-2.0' },
 		},
 		servers: ENVIRONMENTS.map((env) => ({
 			url: `https://{customer}.${env.domain}`,
 			description: env.label,
-			variables: { customer: { default: 'demo', description: 'Your Skwirrel tenant name' } },
+			variables: customerVariable(),
 		})),
 		tags: Object.entries(DOMAINS).map(([name, names]) => ({ name, description: `${names.length} methods` })),
 		security: [{ staticToken: [] }, { oauth2: [] }],
@@ -263,7 +295,7 @@ function buildOpenApi(methods) {
 			},
 			responses: {
 				Unauthorized: errorResponse('Wrong, expired or missing token.', -32001, 'Unauthorized', 'Failed to authenticate client'),
-				Forbidden: errorResponse('The client has no grant for this method.', -32002, 'Method is forbidden', 'Method getProducts (v3) is not allowed for this client'),
+				Forbidden: errorResponse('The client has no grant for this method.', -32002, 'Method is forbidden', 'Method <method> (v3) is not allowed for this client'),
 			},
 			schemas: {
 				JsonRpcErrorResponse: {
@@ -297,11 +329,11 @@ function swaggerHtml(openapi) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${TITLE} v${API_VERSION}</title>
-<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@${SWAGGER_UI_VERSION}/swagger-ui.css">
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@${SWAGGER_UI_VERSION}/swagger-ui.css" integrity="${SWAGGER_UI_SRI.css}" crossorigin="anonymous">
 </head>
 <body>
 <div id="swagger-ui"></div>
-<script src="https://unpkg.com/swagger-ui-dist@${SWAGGER_UI_VERSION}/swagger-ui-bundle.js"></script>
+<script src="https://unpkg.com/swagger-ui-dist@${SWAGGER_UI_VERSION}/swagger-ui-bundle.js" integrity="${SWAGGER_UI_SRI.js}" crossorigin="anonymous"></script>
 <script>
 const spec = ${spec};
 window.ui = SwaggerUIBundle({ spec, dom_id: '#swagger-ui', deepLinking: true });
@@ -342,7 +374,7 @@ function buildPostman(methods) {
 					code: 200,
 					_postman_previewlanguage: 'json',
 					header: [{ key: 'Content-Type', value: 'application/json' }],
-					body: JSON.stringify({ jsonrpc: '2.0', result: ex.result.value, id: 1 }, null, 2),
+					body: JSON.stringify(resultEnvelope(ex.result.value), null, 2),
 				})),
 			};
 		}),
@@ -351,7 +383,7 @@ function buildPostman(methods) {
 	return {
 		info: {
 			name: `${TITLE} v${API_VERSION}`,
-			description: `${INTRO}\n\n**Getting started:** pick the Production or Development environment, set \`customer\` to your tenant name and \`api_token\` to your static token.\n\n**OAuth2 instead:** open the collection's Authorization tab, choose OAuth 2.0 (pre-filled with client credentials and the token URL), fill \`client_id\` and \`client_secret\` in the environment, and click Get New Access Token.`,
+			description: gettingStarted('open the collection\'s Authorization tab, choose OAuth 2.0 (pre-filled with client credentials and the token URL), fill the secrets `client_id` and `client_secret` in the environment, and click Get New Access Token.'),
 			schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
 		},
 		auth: {
@@ -369,7 +401,7 @@ function buildPostman(methods) {
 		},
 		item: folders,
 		variable: [
-			{ key: 'customer', value: 'demo' },
+			{ key: 'customer', value: DEFAULT_CUSTOMER },
 			{ key: 'domain', value: 'skwirrel.eu' },
 		],
 	};
@@ -380,10 +412,10 @@ function postmanEnvironment(env) {
 	return {
 		name: `Skwirrel ${env.label} (${env.domain})`,
 		values: [
-			value('customer', 'demo'),
+			value('customer', DEFAULT_CUSTOMER),
 			value('domain', env.domain),
 			value('api_token', '', 'secret'),
-			value('client_id', ''),
+			value('client_id', '', 'secret'),
 			value('client_secret', '', 'secret'),
 		],
 		_postman_variable_scope: 'environment',
@@ -445,12 +477,12 @@ auth:oauth2 {
 }
 
 docs {
-${indent(`${INTRO}\n\n**Getting started:** pick the Production or Development environment, set \`customer\` to your tenant name and the secret \`api_token\` to your static token.\n\n**OAuth2 instead:** in the collection settings, set Auth to OAuth 2.0 (client credentials and token URL are pre-filled), fill the secrets \`client_id\` and \`client_secret\`, and fetch a token.`)}
+${indent(gettingStarted('in the collection settings, set Auth to OAuth 2.0 (client credentials and token URL are pre-filled), fill the secrets `client_id` and `client_secret`, and fetch a token.'))}
 }
 `;
 	for (const env of ENVIRONMENTS) {
 		files[`${root}/environments/${env.label}.bru`] = `vars {
-  customer: demo
+  customer: ${DEFAULT_CUSTOMER}
   domain: ${env.domain}
 }
 vars:secret [
@@ -492,7 +524,7 @@ export function buildAll(input) {
 		...buildBruno(byDomainOrder),
 	};
 	for (const env of ENVIRONMENTS) {
-		files[`postman/environments/${env.key}.postman_environment.json`] = json(postmanEnvironment(env));
+		files[`postman/environments/${env.label}.postman_environment.json`] = json(postmanEnvironment(env));
 	}
 	return files;
 }
@@ -503,6 +535,7 @@ async function fetchDiscover(baseUrl) {
 	try {
 		response = await fetch(url, {
 			method: 'POST',
+			signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
 			headers: { 'Content-Type': 'application/json', 'X-Skwirrel-Api-Version': API_VERSION },
 			body: JSON.stringify({ jsonrpc: '2.0', method: 'rpc.discover', id: 1 }),
 		});
@@ -510,38 +543,66 @@ async function fetchDiscover(baseUrl) {
 		throw new Error(`Could not reach core at ${url}: ${error.cause?.message ?? error.message}`);
 	}
 	if (!response.ok) throw new Error(`Core at ${url} answered HTTP ${response.status}`);
-	return response.json();
-}
-
-function writeAll(files, outDir) {
-	for (const dir of OUTPUT_DIRS) rmSync(join(outDir, dir), { recursive: true, force: true });
-	for (const [path, content] of Object.entries(files)) {
-		const target = join(outDir, path);
-		mkdirSync(dirname(target), { recursive: true });
-		writeFileSync(target, content);
+	try {
+		return await response.json();
+	} catch {
+		throw new Error(`Core at ${url} did not return JSON (a login page or proxy in between?)`);
 	}
 }
+
+/**
+ * Writes everything into a temporary folder first and only then swaps each
+ * output folder in, so a failed write never leaves half-written docs behind.
+ */
+function writeAll(files, outDir) {
+	mkdirSync(outDir, { recursive: true });
+	const staging = mkdtempSync(join(outDir, '.generate-'));
+	try {
+		for (const [path, content] of Object.entries(files)) {
+			const target = join(staging, path);
+			mkdirSync(dirname(target), { recursive: true });
+			writeFileSync(target, content);
+		}
+		for (const dir of OUTPUT_DIRS) {
+			rmSync(join(outDir, dir), { recursive: true, force: true });
+			renameSync(join(staging, dir), join(outDir, dir));
+		}
+	} finally {
+		rmSync(staging, { recursive: true, force: true });
+	}
+}
+
+const USAGE = `Usage: generate.mjs (--url <core base url> | --input <discover.json>) [--out <dir>]
+
+Replaces ${OUTPUT_DIRS.join('/, ')}/ in <dir> (default: the repository root).`;
 
 function parseArgs(argv) {
+	if (argv.includes('--help') || argv.includes('-h')) return { help: true };
 	const args = {};
 	for (let i = 0; i < argv.length; i += 2) {
-		const key = argv[i]?.replace(/^--/, '');
+		const flag = argv[i];
+		const key = flag.startsWith('--') ? flag.slice(2) : null;
 		if (!['url', 'input', 'out'].includes(key) || argv[i + 1] === undefined) {
-			throw new Error('Usage: generate.mjs (--url <core base url> | --input <discover.json>) [--out <dir>]');
+			throw new Error(`Unknown or incomplete option "${flag}".\n\n${USAGE}`);
 		}
+		if (key in args) throw new Error(`Option --${key} given twice.`);
 		args[key] = argv[i + 1];
 	}
-	if (!args.url === !args.input) throw new Error('Pass exactly one of --url or --input.');
+	if (!args.url === !args.input) throw new Error(`Pass exactly one of --url or --input.\n\n${USAGE}`);
 	return args;
 }
 
 async function main() {
 	const args = parseArgs(process.argv.slice(2));
+	if (args.help) {
+		console.log(USAGE);
+		return;
+	}
 	const outDir = resolve(args.out ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
-	const input = args.url ? await fetchDiscover(args.url) : JSON.parse(readFileSync(args.input, 'utf8'));
-	const files = buildAll(input);
+	const doc = unwrap(args.url ? await fetchDiscover(args.url) : JSON.parse(readFileSync(args.input, 'utf8')));
+	const files = buildAll(doc);
 	writeAll(files, outDir);
-	console.log(`Wrote ${Object.keys(files).length} files for ${unwrap(input).methods.length} methods to ${outDir}`);
+	console.log(`Wrote ${Object.keys(files).length} files for ${doc.methods.length} methods to ${outDir}`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

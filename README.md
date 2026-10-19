@@ -41,12 +41,13 @@ Errors come back as a JSON-RPC `error` object instead of `result`, with a matchi
 |---|---|---|---|
 | Wrong, expired or missing token | 401 | -32001 | `Unauthorized` |
 | Your client has no grant for this method | 403 | -32002 | `Method is forbidden` |
+| Too many requests from your client | 429 | -32029 | `Too many requests` |
 
 ```json
 { "jsonrpc": "2.0", "error": { "code": -32001, "message": "Unauthorized", "data": "Failed to authenticate client" }, "id": 1 }
 ```
 
-Ask your administrator to grant the method if you need it.
+`error.data` adds detail, for example `Failed to authenticate client` (wrong or expired token) or `No client has been authorized` (no token sent). Ask your administrator to grant a method if you need it. On 429, wait and retry more slowly.
 
 ## Your first request
 
@@ -74,8 +75,8 @@ curl -X POST https://demo.skwirrel.eu/jsonrpc \
 | Tool | File | How |
 |---|---|---|
 | **OpenRPC** (the source) | `openrpc/skwirrel-api-v3.openrpc.json` | The native JSON-RPC description. Open it in the [OpenRPC playground](https://playground.open-rpc.org/) or feed it to a code generator. |
-| **Swagger / OpenAPI 3.1** | `openapi/skwirrel-api-v3.openapi.json`, `openapi/index.html` | Open `index.html` in a browser (works from disk). Pick a server, click Authorize, and try any method. Each method is listed as `/jsonrpc#<method>`; the part after `#` is never sent. |
-| **Postman** | `postman/skwirrel-api-v3.postman_collection.json` + `postman/environments/` | Import the collection and both environments. Pick an environment, set `customer` and `api_token`. For OAuth2: collection > Authorization > OAuth 2.0 (pre-filled), set `client_id` and `client_secret`, click Get New Access Token. |
+| **Swagger / OpenAPI 3.1** | `openapi/skwirrel-api-v3.openapi.json`, `openapi/index.html` | Open `index.html` in a browser (works from disk) to browse every method with its parameters, examples and result. Each method is listed as `/jsonrpc#<method>`; the part after `#` is never sent. Skwirrel does not allow cross-origin browser requests, so send real requests with curl, Postman or Bruno rather than Try it out. |
+| **Postman** | `postman/skwirrel-api-v3.postman_collection.json` + `postman/environments/` | Import the collection and both environments (Production, Development). Pick an environment, set `customer` and the secret `api_token`. For OAuth2: collection > Authorization > OAuth 2.0 (pre-filled), set `client_id` and `client_secret`, click Get New Access Token. |
 | **Bruno** | `bruno/skwirrel-api-v3/` | Open the folder as a collection in a recent [Bruno](https://www.usebruno.com/). Pick the Production or Development environment, set `customer` and the secret `api_token`. For OAuth2: collection settings > Auth > OAuth 2.0 (pre-filled), set `client_id` and `client_secret`. |
 
 Every request in Postman and Bruno already sends `X-Skwirrel-Api-Version: 3` and uses the example from core as its body.
@@ -106,6 +107,16 @@ Addons can add their own methods to a tenant. Those are not documented here.
 ```json
 { "jsonrpc": "2.0", "result": { "product_id": 123, "outcome": "queued_for_review", "change_request_id": 42 }, "id": 1 }
 ```
+
+These four methods always return `outcome`. Check it; a successful call does not mean the change is live:
+
+| `outcome` | `change_request_id` | Meaning |
+|---|---|---|
+| `applied` | `null` | Saved directly. |
+| `queued_for_review` | integer | Nothing published yet; waiting for review in Skwirrel. |
+| `no_changes` | `null` | Nothing differs from the live data; nothing saved or queued. |
+
+Your administrator can also make your client **review-only**. Then these four methods always propose, even without the flag. Creating new products or trade items, and all other changes including deletes, are refused.
 
 Only existing products and trade items can be proposed (pass their ID). Other methods reject `add_to_changes`. `saveProductChangeRequest` is the older name for `saveProduct` with `add_to_changes: true`.
 

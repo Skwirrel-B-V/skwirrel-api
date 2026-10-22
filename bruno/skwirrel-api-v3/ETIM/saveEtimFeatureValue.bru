@@ -1,0 +1,224 @@
+meta {
+  name: saveEtimFeatureValue
+  type: http
+  seq: 8
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveEtimFeatureValue",
+    "params": {
+      "product_id": 123,
+      "etim_class_type": "REGULAR",
+      "etim_release": "ETIM-10.0",
+      "etim_feature_code": "EF000003",
+      "numeric_value": 230
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Set a single ETIM feature value on a product. The product must already have an ETIM classification set for the given type and release.
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer (nullable) | no | Internal product ID; required unless external_product_id is supplied |
+  | `external_product_id` | string (nullable) | no | External product ID; required unless product_id is supplied |
+  | `etim_class_type` | string | no | ETIM class type: REGULAR or MODELLING |
+  | `etim_release` | string | no | ETIM release (e.g. "ETIM-9.0"). Use "DYNAMIC" for MODELLING type |
+  | `etim_feature_code` | string | no | ETIM feature code to set (e.g. "EF000001") |
+  | `port_code` | integer | no | Port code for MODELLING class features; defaults to 0 for REGULAR |
+  | `not_applicable` | boolean | no | Mark this feature as not applicable for this product |
+  | `etim_value_code` | string (nullable) | no | Alphanumeric (A-type) feature value code (e.g. "EV000001") |
+  | `numeric_value` | number (nullable) | no | Numeric (N-type) feature value |
+  | `logical_value` | boolean (nullable) | no | Logical (L-type) feature value: true or false |
+  | `range_min` | number (nullable) | no | Range (R-type) minimum value |
+  | `range_max` | number (nullable) | no | Range (R-type) maximum value |
+  | `coordinate_x` | number (nullable) | no | Coordinate (C-type) X value |
+  | `coordinate_y` | number (nullable) | no | Coordinate (C-type) Y value |
+  | `coordinate_z` | number (nullable) | no | Coordinate (C-type) Z value |
+  | `value_details` | object[] (nullable) | no | Per-language value details for A-type features (ETIM xChange EtimValueDetails); only stored together with etim_value_code. Languages not listed are left unchanged |
+
+  **Example: Numeric value (N-type)**. Provide numeric_value for N-type features.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveEtimFeatureValue",
+    "params": {
+      "product_id": 123,
+      "etim_class_type": "REGULAR",
+      "etim_release": "ETIM-10.0",
+      "etim_feature_code": "EF000003",
+      "numeric_value": 230
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "etim_class_type": "REGULAR",
+    "etim_release": "ETIM-10.0",
+    "etim_feature_code": "EF000003",
+    "port_code": 0,
+    "etim_value_code": null,
+    "numeric_value": 230,
+    "logical_value": null,
+    "range_min": null,
+    "range_max": null,
+    "coordinate_x": null,
+    "coordinate_y": null,
+    "coordinate_z": null,
+    "not_applicable": false,
+    "value_details": []
+  }
+  ```
+
+  **Example: Value code (A-type)**. Provide etim_value_code for A-type features.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveEtimFeatureValue",
+    "params": {
+      "product_id": 123,
+      "etim_class_type": "REGULAR",
+      "etim_release": "ETIM-10.0",
+      "etim_feature_code": "EF000006",
+      "etim_value_code": "EV000001"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "etim_class_type": "REGULAR",
+    "etim_release": "ETIM-10.0",
+    "etim_feature_code": "EF000006",
+    "port_code": 0,
+    "etim_value_code": "EV000001",
+    "numeric_value": null,
+    "logical_value": null,
+    "range_min": null,
+    "range_max": null,
+    "coordinate_x": null,
+    "coordinate_y": null,
+    "coordinate_z": null,
+    "not_applicable": false,
+    "value_details": []
+  }
+  ```
+
+  **Example: Mark not applicable**. Set not_applicable=true to explicitly mark a feature as not applicable.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveEtimFeatureValue",
+    "params": {
+      "product_id": 123,
+      "etim_class_type": "REGULAR",
+      "etim_release": "ETIM-10.0",
+      "etim_feature_code": "EF000003",
+      "not_applicable": true
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "etim_class_type": "REGULAR",
+    "etim_release": "ETIM-10.0",
+    "etim_feature_code": "EF000003",
+    "port_code": 0,
+    "etim_value_code": null,
+    "numeric_value": null,
+    "logical_value": null,
+    "range_min": null,
+    "range_max": null,
+    "coordinate_x": null,
+    "coordinate_y": null,
+    "coordinate_z": null,
+    "not_applicable": true,
+    "value_details": []
+  }
+  ```
+
+  **Example: Alphanumeric value with value details (A-type)**. value_details holds the manufacturer-specific explanation of the chosen value per language (ETIM xChange EtimValueDetails). It is only stored next to etim_value_code; an empty string removes a language.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveEtimFeatureValue",
+    "params": {
+      "product_id": 123,
+      "etim_class_type": "REGULAR",
+      "etim_release": "ETIM-10.0",
+      "etim_feature_code": "EF000007",
+      "etim_value_code": "EV000202",
+      "value_details": [
+        {
+          "language": "nl-NL",
+          "value_details": "Poolwit"
+        },
+        {
+          "language": "en-GB",
+          "value_details": "Polar white"
+        }
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "etim_class_type": "REGULAR",
+    "etim_release": "ETIM-10.0",
+    "etim_feature_code": "EF000007",
+    "port_code": 0,
+    "etim_value_code": "EV000202",
+    "numeric_value": null,
+    "logical_value": null,
+    "range_min": null,
+    "range_max": null,
+    "coordinate_x": null,
+    "coordinate_y": null,
+    "coordinate_z": null,
+    "not_applicable": false,
+    "value_details": [
+      {
+        "language": "en-GB",
+        "value_details": "Polar white"
+      },
+      {
+        "language": "nl-NL",
+        "value_details": "Poolwit"
+      }
+    ]
+  }
+  ```
+}

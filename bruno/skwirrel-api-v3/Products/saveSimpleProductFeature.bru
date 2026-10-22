@@ -1,0 +1,78 @@
+meta {
+  name: saveSimpleProductFeature
+  type: http
+  seq: 12
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveSimpleProductFeature",
+    "params": {
+      "product_id": 123,
+      "custom_class_code": "LOGISTICS",
+      "custom_feature_code": "WEIGHT_NET",
+      "custom_feature_type": "N",
+      "numeric_value": 0.5
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Set a custom classification feature value for a product. The class, feature, and value (for types A and M) are created on the fly if they do not exist. For type M, values are appended to existing ones. Setting not_applicable=true wipes the current value.
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer (nullable) | no | Internal product ID; mutually exclusive with external_product_id |
+  | `external_product_id` | string (nullable) | no | External product ID; mutually exclusive with product_id |
+  | `custom_class_code` | string | yes | Code of the custom class to classify under |
+  | `custom_feature_code` | string | yes | Code of the custom feature |
+  | `custom_feature_type` | string | yes | Feature type: A (alphanumeric), L (logical), N (numeric), R (range), T (text), B (big-text), D (date), M (multi-value), I (translated text) |
+  | `custom_value_code` | string (nullable) | no | Custom value code; required for type A and M |
+  | `numeric_value` | number (nullable) | no | Numeric value; required for type N |
+  | `logical_value` | boolean (nullable) | no | Logical value; required for type L |
+  | `range_min` | number (nullable) | no | Range minimum; required together with or instead of range_max for type R |
+  | `range_max` | number (nullable) | no | Range maximum; required together with or instead of range_min for type R |
+  | `text_value` | string (nullable) | no | Text value; required for type T |
+  | `big_text_value` | string (nullable) | no | Big text value; required for type B |
+  | `translated_text` | string (nullable) | no | Translated text value; required for type I |
+  | `translated_text_language` | string (nullable) | no | Language code for the translated text; required for type I |
+  | `date_value` | string (nullable) | no | Date value in YYYY-MM-DD format; required for type D |
+  | `not_applicable` | boolean (nullable) | no | Set to true to mark the feature as not applicable |
+
+  **Example: Set a numeric product feature**. Custom class, feature, and value are created automatically if they do not exist.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveSimpleProductFeature",
+    "params": {
+      "product_id": 123,
+      "custom_class_code": "LOGISTICS",
+      "custom_feature_code": "WEIGHT_NET",
+      "custom_feature_type": "N",
+      "numeric_value": 0.5
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_class_id": 1,
+    "custom_feature_id": 5,
+    "custom_class_feature_id": 8,
+    "custom_classification_id": 201,
+    "custom_value_id": null
+  }
+  ```
+}

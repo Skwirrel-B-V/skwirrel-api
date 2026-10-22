@@ -1,0 +1,58 @@
+meta {
+  name: saveProductCustomGroup
+  type: http
+  seq: 9
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductCustomGroup",
+    "params": {
+      "product_group_id": 1,
+      "product_id": 123,
+      "_delete": false
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Assign or remove a product from a custom product group
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_group_id` | integer | yes | Internal ID of the product group |
+  | `product_id` | integer | yes | Internal ID of the product |
+  | `_delete` | boolean (nullable) | no | Set to true to remove the product from the group |
+
+  **Example: Add product to custom group**. Set _delete=true to remove the product from the group.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductCustomGroup",
+    "params": {
+      "product_group_id": 1,
+      "product_id": 123,
+      "_delete": false
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_group_id": 1,
+    "product_id": 123
+  }
+  ```
+}

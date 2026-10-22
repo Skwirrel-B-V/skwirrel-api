@@ -1,0 +1,72 @@
+meta {
+  name: saveTradeItemPrice
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItemPrice",
+    "params": {
+      "trade_item_id": 456,
+      "price_list_id": 1,
+      "price_start_date": "2025-01-01",
+      "gross_price": 49.95,
+      "price_base": 1,
+      "price_base_uom": "PCE"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a price entry for a trade item in a price list
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `trade_item_price_id` | integer (nullable) | no | Internal ID of the price entry; omit to create a new price |
+  | `external_trade_item_price_id` | string (nullable) | no | Your system's reference ID for the price entry |
+  | `price_list_id` | integer (nullable) | no | ID of the price list this price belongs to |
+  | `trade_item_id` | integer (nullable) | no | ID of the trade item |
+  | `price_start_date` | string (nullable) | no | Date from which this price is effective (ISO 8601) |
+  | `gross_price` | number (nullable) | no | Gross (list) price |
+  | `net_price` | number (nullable) | no | Net price after standard discounts |
+  | `suggested_price` | number (nullable) | no | Suggested retail price |
+  | `price_base` | number (nullable) | no | Quantity base for which the price applies |
+  | `price_base_uom` | string (nullable) | no | Unit of measurement for the price base |
+  | `price_on_request` | boolean (nullable) | no | True if the price is available on request only |
+  | `expires_in_days` | integer (nullable) | no | Number of days until this price expires (0-65535) |
+
+  **Example: Set a trade item price**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveTradeItemPrice",
+    "params": {
+      "trade_item_id": 456,
+      "price_list_id": 1,
+      "price_start_date": "2025-01-01",
+      "gross_price": 49.95,
+      "price_base": 1,
+      "price_base_uom": "PCE"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "trade_item_price_id": 789
+  }
+  ```
+}

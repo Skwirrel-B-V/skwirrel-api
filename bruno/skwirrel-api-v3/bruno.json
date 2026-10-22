@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Skwirrel PIM API v3",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

@@ -1,0 +1,86 @@
+meta {
+  name: saveCustomUnit
+  type: http
+  seq: 8
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomUnit",
+    "params": {
+      "custom_unit_code": "KG"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a custom measurement unit
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `custom_unit_id` | integer (nullable) | no | Internal ID of the custom unit; omit to create a new unit |
+  | `custom_unit_code` | string (nullable) | no | Unique code identifying the unit |
+  | `_translations` | object[] (nullable) | no | Translated descriptions and abbreviations for each language |
+
+  **Example: Create a unit**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomUnit",
+    "params": {
+      "custom_unit_code": "KG"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_unit_id": 1
+  }
+  ```
+
+  **Example: Create a unit with translations**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomUnit",
+    "params": {
+      "custom_unit_code": "KG",
+      "_translations": [
+        {
+          "language": "nl",
+          "custom_unit_description": "Kilogram",
+          "custom_unit_abbreviation": "kg"
+        },
+        {
+          "language": "en",
+          "custom_unit_description": "Kilogram",
+          "custom_unit_abbreviation": "kg"
+        }
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_unit_id": 1
+  }
+  ```
+}

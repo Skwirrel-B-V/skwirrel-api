@@ -1,0 +1,71 @@
+meta {
+  name: checkProductsInSelection
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "checkProductsInSelection",
+    "params": {
+      "dynamic_selection_id": 1,
+      "product_id": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Check which of the supplied product IDs belong to a dynamic selection
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer[] | yes | Product IDs to check for selection membership |
+  | `dynamic_selection_id` | integer | yes | ID of the dynamic selection to check membership against |
+
+  **Example: Check membership in a selection**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "checkProductsInSelection",
+    "params": {
+      "dynamic_selection_id": 1,
+      "product_id": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "in_selection": [
+      1,
+      2,
+      3
+    ],
+    "not_in_selection": [
+      4
+    ]
+  }
+  ```
+}

@@ -1,0 +1,94 @@
+meta {
+  name: getCategories
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getCategories",
+    "params": {
+      "limit": 5
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve the product category tree
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `product_category_id` | integer[] (nullable) | no | Filter by product category IDs |
+  | `super_category_id` | integer (nullable) | no | Filter to children of this super-category ID |
+  | `include_category_images` | boolean | no | Include category images in the response |
+  | `include_category_translations` | boolean | no | Include translated category names; requires include_languages |
+  | `include_category_seo` | boolean | no | Include SEO fields for categories; requires include_languages |
+  | `include_languages` | string[] (nullable) | no | Language codes to include in translations (e.g. ["nl", "fr"]) |
+  | `include_contexts` | integer[] (nullable) | no | Context IDs to include (default: [1]) |
+  | `include_attachments` | boolean | no | Include attachments linked to the category |
+  | `include_attachment_translations` | boolean | no | Include translated attachment names; requires include_languages |
+  | `include_attachment_types` | string[] (nullable) | no | Only include attachments of these types; omit to include all types |
+  | `include_internal_attachments` | boolean | no | Include internal (non-public) attachments |
+  | `include_products` | boolean | no | Include products linked to the category |
+  | `include_custom_classes` | boolean | no | Include custom classification features for the category |
+  | `include_custom_class_id` | integer[] (nullable) | no | Only include custom classes with these IDs |
+  | `include_custom_collection_id` | integer[] (nullable) | no | Only include custom classes from these collection IDs |
+  | `include_etim_features` | boolean | no | Include ETIM features bound to the category |
+  | `include_custom_features` | boolean | no | Include custom features bound to the category |
+
+  **Example: Root categories**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getCategories",
+    "params": {
+      "limit": 5
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "categories": [
+      {
+        "product_category_id": 1,
+        "super_category_id": 1,
+        "parent_category_id": null,
+        "product_category_code": "CABLES",
+        "depth": 0,
+        "left": 1,
+        "right": 2
+      },
+      {
+        "product_category_id": 2,
+        "super_category_id": 1,
+        "parent_category_id": null,
+        "product_category_code": "CONNECTORS",
+        "depth": 0,
+        "left": 3,
+        "right": 4
+      }
+    ],
+    "page": {
+      "number_of_items": 2,
+      "items_per_page": 5,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

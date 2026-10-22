@@ -1,0 +1,14 @@
+{
+  "name": "skwirrel-api",
+  "private": true,
+  "description": "Generates the Skwirrel API v3 docs (OpenRPC, OpenAPI, Postman, Bruno) from core's rpc.discover",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "test": "node --test test/generate.test.mjs"
+  },
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,77 @@
+meta {
+  name: getEtimFeatures
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getEtimFeatures",
+    "params": {
+      "etim_class_code": "EC002713",
+      "etim_release": "ETIM-10.0"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve ETIM features with optional translations. Filter by class code to get only features belonging to that class.
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–2500) |
+  | `etim_class_code` | string (nullable) | no | Filter to features belonging to this ETIM class code (e.g. "EC000001") |
+  | `etim_release` | string (nullable) | no | ETIM release to resolve the class version (e.g. "ETIM-9.0"); used with etim_class_code |
+  | `search_query` | string (nullable) | no | Free-text search on feature description or code |
+  | `include_languages` | string[] (nullable) | no | Language codes to include translations for (e.g. ["nl", "en"]) |
+
+  **Example: Features for EC002713 (ETIM-10.0)**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getEtimFeatures",
+    "params": {
+      "etim_class_code": "EC002713",
+      "etim_release": "ETIM-10.0"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "etim_features": [
+      {
+        "etim_feature_code": "EF000003",
+        "etim_feature_type": "N"
+      },
+      {
+        "etim_feature_code": "EF000006",
+        "etim_feature_type": "A"
+      },
+      {
+        "etim_feature_code": "EF000012",
+        "etim_feature_type": "L"
+      }
+    ],
+    "page": {
+      "number_of_items": 3,
+      "items_per_page": 100,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

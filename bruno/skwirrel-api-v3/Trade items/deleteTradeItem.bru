@@ -1,0 +1,52 @@
+meta {
+  name: deleteTradeItem
+  type: http
+  seq: 8
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteTradeItem",
+    "params": {
+      "trade_item_id": 456
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Delete a trade item
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `trade_item_id` | integer (nullable) | no | Internal ID of the trade item to delete |
+  | `external_trade_item_id` | string (nullable) | no | Your system's reference ID of the trade item to delete |
+
+  **Example: Delete a trade item**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteTradeItem",
+    "params": {
+      "trade_item_id": 456
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "trade_item_id": 456
+  }
+  ```
+}

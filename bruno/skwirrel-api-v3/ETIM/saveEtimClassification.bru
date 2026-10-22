@@ -1,0 +1,68 @@
+meta {
+  name: saveEtimClassification
+  type: http
+  seq: 7
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveEtimClassification",
+    "params": {
+      "product_id": 123,
+      "etim_class_type": "REGULAR",
+      "etim_release": "ETIM-10.0",
+      "etim_class_code": "EC002713",
+      "etim_class_version": 10
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Set or change the ETIM classification for a product. If the ETIM class code changes, all existing feature values for that product/type/release are removed.
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer (nullable) | no | Internal product ID; required unless external_product_id is supplied |
+  | `external_product_id` | string (nullable) | no | External product ID; required unless product_id is supplied |
+  | `etim_class_type` | string | no | ETIM class type: REGULAR or MODELLING |
+  | `etim_release` | string | no | ETIM release (e.g. "ETIM-9.0"). Use "DYNAMIC" for MODELLING type only |
+  | `etim_class_code` | string (nullable) | no | ETIM class code to assign (e.g. "EC000001"); omit to keep the current class |
+  | `etim_class_version` | integer (nullable) | no | Specific ETIM class version to pin; omit to use the latest version for the given release |
+
+  **Example: Assign REGULAR classification**. Class version is optional; omit it to use the latest version for the release.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveEtimClassification",
+    "params": {
+      "product_id": 123,
+      "etim_class_type": "REGULAR",
+      "etim_release": "ETIM-10.0",
+      "etim_class_code": "EC002713",
+      "etim_class_version": 10
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "etim_class_type": "REGULAR",
+    "etim_release": "ETIM-10.0",
+    "etim_class_code": "EC002713",
+    "etim_class_version": 10
+  }
+  ```
+}

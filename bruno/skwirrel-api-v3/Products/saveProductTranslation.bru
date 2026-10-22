@@ -1,0 +1,98 @@
+meta {
+  name: saveProductTranslation
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductTranslation",
+    "params": {
+      "product_id": 123,
+      "language": "nl",
+      "product_description": "Mijn product",
+      "product_long_description": "Een uitgebreide beschrijving"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Set translated text fields for a product in a specific language. Set add_to_changes=true to queue for review. Returns outcome=applied, queued_for_review (with change_request_id), or no_changes. Review-only clients always queue.
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `add_to_changes` | boolean | no | Queue an update for review instead of publishing |
+  | `product_id` | integer | yes | Internal ID of the product |
+  | `language` | string | yes | BCP 47 language code (e.g. nl, nl-BE) |
+  | `context_id` | integer | no | Channel context ID; defaults to 1 |
+  | `product_model` | string (nullable) | no | Model name of the product |
+  | `product_variation` | string (nullable) | no | Variation descriptor (e.g. colour, size) |
+  | `product_description` | string (nullable) | no | Short product description |
+  | `product_long_description` | string (nullable) | no | Extended product description |
+  | `product_marketing_text` | string (nullable) | no | Marketing copy for the product |
+  | `product_web_text` | string (nullable) | no | Web-facing product text |
+
+  **Example: Set Dutch product name**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductTranslation",
+    "params": {
+      "product_id": 123,
+      "language": "nl",
+      "product_description": "Mijn product",
+      "product_long_description": "Een uitgebreide beschrijving"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "language": "nl",
+    "context_id": 1,
+    "outcome": "applied",
+    "change_request_id": null
+  }
+  ```
+
+  **Example: Propose a product translation**. Only supplied translated fields are proposed. A no-op returns outcome=no_changes and change_request_id=null.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductTranslation",
+    "params": {
+      "product_id": 123,
+      "language": "nl",
+      "product_description": "Nieuwe omschrijving",
+      "add_to_changes": true
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "language": "nl",
+    "context_id": 1,
+    "outcome": "queued_for_review",
+    "change_request_id": 42
+  }
+  ```
+}

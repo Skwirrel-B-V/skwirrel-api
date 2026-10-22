@@ -1,0 +1,53 @@
+meta {
+  name: deleteSupplier
+  type: http
+  seq: 9
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteSupplier",
+    "params": {
+      "supplier_id": 5
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Delete a supplier, optionally reassigning its trade items to another supplier
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `supplier_id` | integer (nullable) | no | Internal ID of the supplier to delete |
+  | `external_supplier_id` | string (nullable) | no | Supplier code of the supplier to delete |
+  | `reassign_supplier_id` | integer (nullable) | no | ID of the supplier to reassign its trade items to before deletion |
+
+  **Example: Delete a supplier**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteSupplier",
+    "params": {
+      "supplier_id": 5
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "supplier_id": 5
+  }
+  ```
+}

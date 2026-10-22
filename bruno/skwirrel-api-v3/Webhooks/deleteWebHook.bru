@@ -1,0 +1,52 @@
+meta {
+  name: deleteWebHook
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteWebHook",
+    "params": {
+      "web_hook_id": 1
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Delete an API-managed webhook
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `web_hook_id` | integer (nullable) | no | Internal ID of the webhook to delete |
+  | `external_web_hook_id` | string (nullable) | no | Your system's reference ID of the webhook to delete |
+
+  **Example: Delete a webhook**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteWebHook",
+    "params": {
+      "web_hook_id": 1
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "web_hook_id": 1
+  }
+  ```
+}

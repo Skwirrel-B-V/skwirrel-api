@@ -1,0 +1,55 @@
+meta {
+  name: saveProductCategory
+  type: http
+  seq: 11
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductCategory",
+    "params": {
+      "product_id": 123,
+      "product_category_id": 7
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Link a product to a category
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer | yes | ID of the product to link to the category |
+  | `product_category_id` | integer | yes | ID of the category to link the product to |
+
+  **Example: Add product to category**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductCategory",
+    "params": {
+      "product_id": 123,
+      "product_category_id": 7
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123,
+    "product_category_id": 7
+  }
+  ```
+}

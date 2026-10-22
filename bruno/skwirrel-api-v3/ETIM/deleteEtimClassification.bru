@@ -1,0 +1,58 @@
+meta {
+  name: deleteEtimClassification
+  type: http
+  seq: 9
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteEtimClassification",
+    "params": {
+      "product_id": 123,
+      "etim_class_type": "REGULAR",
+      "etim_release": "ETIM-10.0"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Remove the ETIM classification and all associated feature values from a product
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer (nullable) | no | Internal product ID; required unless external_product_id is supplied |
+  | `external_product_id` | string (nullable) | no | External product ID; required unless product_id is supplied |
+  | `etim_class_type` | string | no | ETIM class type to remove: REGULAR or MODELLING |
+  | `etim_release` | string | no | ETIM release to remove (e.g. "ETIM-9.0"). Use "DYNAMIC" for MODELLING type |
+
+  **Example: Delete REGULAR classification**. All product_etim_feature rows for this product/type/release are removed first.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteEtimClassification",
+    "params": {
+      "product_id": 123,
+      "etim_class_type": "REGULAR",
+      "etim_release": "ETIM-10.0"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123
+  }
+  ```
+}

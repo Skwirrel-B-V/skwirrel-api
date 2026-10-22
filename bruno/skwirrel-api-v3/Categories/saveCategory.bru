@@ -1,0 +1,60 @@
+meta {
+  name: saveCategory
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCategory",
+    "params": {
+      "super_category_id": 1,
+      "category_name": "Cables",
+      "language": "nl-NL"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a product category
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_category_id` | integer (nullable) | no | ID of the category to update; omit to create a new category |
+  | `super_category_id` | integer (nullable) | no | Super-category this category belongs to (required when creating) |
+  | `parent_category_id` | integer (nullable) | no | Parent category ID; omit for a root-level category within the super-category |
+  | `product_category_code` | string (nullable) | no | Short code for the category, unique within its super-category (max 50 characters) |
+  | `category_name` | string (nullable) | no | Display name of the category in the given language (requires language) |
+  | `language` | string (nullable) | no | BCP 47 language code for category_name (e.g. nl-NL); required when category_name is set |
+
+  **Example: Create a category**. Omit product_category_id to create; provide it to update. Use super_category_id to nest under a parent.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCategory",
+    "params": {
+      "super_category_id": 1,
+      "category_name": "Cables",
+      "language": "nl-NL"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_category_id": 7
+  }
+  ```
+}

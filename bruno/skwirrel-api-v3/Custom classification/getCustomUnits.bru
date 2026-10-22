@@ -1,0 +1,65 @@
+meta {
+  name: getCustomUnits
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getCustomUnits",
+    "params": {},
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve custom measurement units
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `include_unit_translations` | boolean | no | Include translated unit names; requires include_languages |
+  | `include_languages` | string[] (nullable) | no | Language codes to include in translations (e.g. ["nl", "fr"]) |
+
+  **Example: All custom units**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getCustomUnits",
+    "params": {},
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_units": [
+      {
+        "custom_unit_id": 1,
+        "custom_unit_code": "KG"
+      },
+      {
+        "custom_unit_id": 2,
+        "custom_unit_code": "M"
+      }
+    ],
+    "page": {
+      "number_of_items": 2,
+      "items_per_page": 1000,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

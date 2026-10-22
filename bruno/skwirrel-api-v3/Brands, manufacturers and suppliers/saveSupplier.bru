@@ -1,0 +1,64 @@
+meta {
+  name: saveSupplier
+  type: http
+  seq: 8
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveSupplier",
+    "params": {
+      "supplier_name": "Main Supplier",
+      "external_supplier_id": "MAIN",
+      "country_code": "NL"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a supplier
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `supplier_id` | integer (nullable) | no | Internal ID of the supplier; omit to create a new supplier |
+  | `external_supplier_id` | string (nullable) | no | Unique short code identifying the supplier (your system's reference) |
+  | `supplier_name` | string (nullable) | no | Display name of the supplier |
+  | `company_name` | string (nullable) | no | Registered company name |
+  | `company_name_2` | string (nullable) | no | Second line of the company name |
+  | `address` | string (nullable) | no | Street address |
+  | `city` | string (nullable) | no | City |
+  | `postal_code` | string (nullable) | no | Postal or ZIP code |
+  | `country_code` | string (nullable) | no | ISO 3166-1 alpha-2 country code |
+  | `gln` | string (nullable) | no | Global Location Number (GS1 GLN, 13 digits) |
+
+  **Example: Create a supplier**. Omit supplier_id to create; provide it to update.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveSupplier",
+    "params": {
+      "supplier_name": "Main Supplier",
+      "external_supplier_id": "MAIN",
+      "country_code": "NL"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "supplier_id": 5
+  }
+  ```
+}

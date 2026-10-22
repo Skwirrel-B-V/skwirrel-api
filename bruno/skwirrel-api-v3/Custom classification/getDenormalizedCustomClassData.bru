@@ -1,0 +1,80 @@
+meta {
+  name: getDenormalizedCustomClassData
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getDenormalizedCustomClassData",
+    "params": {
+      "include_languages": [
+        "nl"
+      ],
+      "limit": 2
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve denormalized custom classification data for bulk export
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `include_languages` | string[] | yes | Language codes to include (e.g. ["nl", "fr"]); at least one required |
+  | `include_feature_types` | string[] (nullable) | no | Only include these custom feature types (e.g. ["A", "N", "L", "R"]) |
+
+  **Example: Custom class features for products**. include_languages is required.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getDenormalizedCustomClassData",
+    "params": {
+      "include_languages": [
+        "nl"
+      ],
+      "limit": 2
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_class_data": [
+      {
+        "language": "nl",
+        "custom_class_id": 1,
+        "custom_class_name": "Logistics",
+        "custom_class_feature_id": 2,
+        "custom_feature_id": 2,
+        "custom_feature_code": "COLOUR",
+        "custom_feature_type": "A",
+        "custom_feature_description": "Kleur",
+        "custom_value_id": 1,
+        "custom_value_code": "RED",
+        "custom_value_description": "Rood"
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 2,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

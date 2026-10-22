@@ -1,0 +1,56 @@
+meta {
+  name: saveBrand
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveBrand",
+    "params": {
+      "brand_name": "Acme",
+      "external_brand_id": "ACME"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a brand
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `brand_id` | integer (nullable) | no | Internal ID of the brand; omit to create a new brand |
+  | `external_brand_id` | string (nullable) | no | Your system's reference ID for the brand |
+  | `brand_name` | string (nullable) | no | Display name of the brand |
+  | `brand_image_base64` | string (nullable) | no | Base64-encoded logo image for the brand |
+
+  **Example: Create a brand**. Omit brand_id to create; provide it to update an existing brand.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveBrand",
+    "params": {
+      "brand_name": "Acme",
+      "external_brand_id": "ACME"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "brand_id": 42
+  }
+  ```
+}

@@ -1,0 +1,112 @@
+meta {
+  name: saveProductLegislation
+  type: http
+  seq: 7
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductLegislation",
+    "params": {
+      "product_id": 123,
+      "weee_category": "1",
+      "rohs_indicator": "true",
+      "hazard_class": [
+        "1",
+        "2.1"
+      ],
+      "_svhc_identification": [
+        {
+          "cas_number": "1234567-89-0",
+          "ec_number": "123-456-7"
+        }
+      ]
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a product's legislation data (ETIM xChange Legislation block). Any array field provided (hazard_class, _svhc_identification, etc.) replaces the full existing set for that sub-resource; an omitted field is left untouched, an empty array clears it. A scalar field (weee_category, reach_date, ...) is left untouched when omitted, and cleared when explicitly sent as null.
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_id` | integer | yes | Internal ID of the product to save legislation data for |
+  | `electric_component_contained` | boolean (nullable) | no | True if the product contains electric components |
+  | `battery_contained` | boolean (nullable) | no | True if the product contains batteries |
+  | `weee_category` | string (nullable) | no | WEEE category |
+  | `rohs_indicator` | string (nullable) | no | RoHS indicator |
+  | `rohs_exemption_number` | string (nullable) | no | RoHS exemption number |
+  | `ce_marking` | boolean (nullable) | no | True if the product bears the CE marking |
+  | `sds_indicator` | boolean (nullable) | no | True if a Safety Data Sheet is available |
+  | `reach_indicator` | string (nullable) | no | REACH indicator |
+  | `reach_date` | string (nullable) | no | REACH date (ISO 8601, YYYY-MM-DD) |
+  | `scip_number` | string (nullable) | no | SCIP number (exactly 36 characters) |
+  | `ufi_code` | string (nullable) | no | UFI code (e.g. XXXX-XXXX-XXXX-XXXX) |
+  | `_svhc_identification` | object[] (nullable) | no | SVHC identifications — replaces the full existing set for this product when provided |
+  | `classification_code` | string (nullable) | no | Classification code |
+  | `signal_word` | string (nullable) | no | Signal word |
+  | `environmental_hazards` | boolean (nullable) | no | True if the product has environmental hazards |
+  | `hazard_class` | string[] (nullable) | no | Hazard classes (xChange HazardClass) — replaces the full existing set for this product when provided |
+  | `hazard_label` | string[] (nullable) | no | Hazard labels (xChange HazardLabel, 1-3 characters each) — replaces the full existing set for this product when provided |
+  | `label_code` | string[] (nullable) | no | GHS label codes (xChange LabelCode) — replaces the full existing set for this product when provided |
+  | `hazard_statement` | string[] (nullable) | no | Hazard statements (xChange HazardStatement, 4-6 characters each, e.g. H319) — replaces the full existing set for this product when provided |
+  | `precautionary_statement` | string[] (nullable) | no | Precautionary statements (xChange PrecautionaryStatement, e.g. P305) — replaces the full existing set for this product when provided |
+  | `un_number` | string (nullable) | no | UN number (4 digits) |
+  | `special_provision_id` | string[] (nullable) | no | Special provision IDs (xChange SpecialProvisionId, e.g. SP123) — replaces the full existing set for this product when provided |
+  | `adr_category` | string (nullable) | no | ADR category |
+  | `net_weight_hazardous_substances` | string (nullable) | no | Net weight of hazardous substances |
+  | `volume_hazardous_substances` | string (nullable) | no | Volume of hazardous substances |
+  | `_un_shipping_name` | object[] (nullable) | no | UN shipping names — replaces the full existing set for this product when provided |
+  | `packing_group` | string (nullable) | no | Packing group |
+  | `limited_quantities` | boolean (nullable) | no | True if limited quantities apply |
+  | `excepted_quantities` | boolean (nullable) | no | True if excepted quantities apply |
+  | `aggregation_state` | string (nullable) | no | Aggregation state |
+  | `tunnel_code` | string (nullable) | no | Tunnel code |
+  | `nos_274` | boolean (nullable) | no | True if NOS 274 applies |
+  | `hazard_trigger` | string[] (nullable) | no | Hazard triggers (xChange HazardTrigger, 1-100 characters each) — replaces the full existing set for this product when provided |
+  | `li_ion_tested` | boolean (nullable) | no | True if Li-ion tested |
+  | `lithium_amount` | string (nullable) | no | Lithium amount (grams) |
+  | `battery_energy` | string (nullable) | no | Battery energy |
+  | `eprel_registration_number` | string (nullable) | no | EPREL registration number |
+
+  **Example: Set RoHS/WEEE fields, hazard codes, and SVHC identification**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductLegislation",
+    "params": {
+      "product_id": 123,
+      "weee_category": "1",
+      "rohs_indicator": "true",
+      "hazard_class": [
+        "1",
+        "2.1"
+      ],
+      "_svhc_identification": [
+        {
+          "cas_number": "1234567-89-0",
+          "ec_number": "123-456-7"
+        }
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 123
+  }
+  ```
+}

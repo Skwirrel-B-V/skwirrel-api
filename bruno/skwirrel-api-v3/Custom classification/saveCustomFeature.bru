@@ -1,0 +1,88 @@
+meta {
+  name: saveCustomFeature
+  type: http
+  seq: 7
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomFeature",
+    "params": {
+      "custom_feature_code": "WEIGHT_NET",
+      "custom_feature_type": "N"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update a custom classification feature
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `custom_feature_id` | integer (nullable) | no | Internal ID of the custom feature; omit to create a new feature |
+  | `custom_feature_code` | string (nullable) | no | Unique code identifying the custom feature |
+  | `custom_feature_type` | string (nullable) | no | Data type: A=alphanumeric, L=list, N=numeric, R=range, T=text, B=boolean, D=date, M=multiline, I=image |
+  | `_translations` | object[] (nullable) | no | Translated descriptions for each language |
+
+  **Example: Create a numeric feature**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomFeature",
+    "params": {
+      "custom_feature_code": "WEIGHT_NET",
+      "custom_feature_type": "N"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_feature_id": 1
+  }
+  ```
+
+  **Example: Create a feature with translations**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveCustomFeature",
+    "params": {
+      "custom_feature_code": "KLEUR",
+      "custom_feature_type": "A",
+      "_translations": [
+        {
+          "language": "nl",
+          "custom_feature_description": "Kleur"
+        },
+        {
+          "language": "en",
+          "custom_feature_description": "Colour"
+        }
+      ]
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "custom_feature_id": 2
+  }
+  ```
+}

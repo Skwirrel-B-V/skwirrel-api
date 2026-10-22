@@ -1,0 +1,59 @@
+meta {
+  name: saveGroup
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveGroup",
+    "params": {
+      "product_group_type": "ALLOWANCE",
+      "product_group_code": "001",
+      "product_group_name": "Kabelbinders"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Create or update an allowance, buying, or custom product group
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `product_group_id` | integer (nullable) | no | Internal ID of the group; omit to create a new group |
+  | `product_group_type` | string (nullable) | no | Group type: ALLOWANCE, BUYING, or CUSTOM; required when creating |
+  | `product_group_code` | string (nullable) | no | Unique code identifying the group within its type; required when creating |
+  | `product_group_name` | string (nullable) | no | Display name of the group; required when creating |
+  | `product_group_comment` | string (nullable) | no | Optional internal note about the group |
+
+  **Example: Create an allowance group**. product_group_type cannot be changed after creation.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveGroup",
+    "params": {
+      "product_group_type": "ALLOWANCE",
+      "product_group_code": "001",
+      "product_group_name": "Kabelbinders"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_group_id": 1
+  }
+  ```
+}

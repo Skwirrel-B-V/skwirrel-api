@@ -1,0 +1,53 @@
+meta {
+  name: deleteBrand
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteBrand",
+    "params": {
+      "brand_id": 42
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Delete a brand, optionally reassigning its products to another brand
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `brand_id` | integer (nullable) | no | Internal ID of the brand to delete |
+  | `external_brand_id` | string (nullable) | no | Your system's reference ID of the brand to delete |
+  | `reassign_brand_id` | integer (nullable) | no | ID of the brand to reassign this brand's products to before deletion |
+
+  **Example: Delete a brand**. Use reassign_brand_id to move the brand's products to another brand before deletion.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "deleteBrand",
+    "params": {
+      "brand_id": 42
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "brand_id": 42
+  }
+  ```
+}

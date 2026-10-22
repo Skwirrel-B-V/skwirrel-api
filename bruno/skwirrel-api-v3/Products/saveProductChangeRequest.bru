@@ -1,0 +1,81 @@
+meta {
+  name: saveProductChangeRequest
+  type: http
+  seq: 8
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductChangeRequest",
+    "params": {
+      "product_id": 1,
+      "product_erp_description": "Updated description"
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Compatibility alias for saveProduct with add_to_changes=true; never publishes
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `add_to_changes` | boolean | no | Queue an update for review instead of publishing; existing entities only |
+  | `product_id` | integer (nullable) | no | Internal ID of the product; omit to create a new product |
+  | `product_type` | string (nullable) | no | Product type: REGULAR, TRADE_ITEM, VIRTUAL, or GROUPED |
+  | `product_kind` | string (nullable) | no | Product kind: PHYSICAL, DIGITAL, or SERVICE |
+  | `external_product_id` | string (nullable) | no | Your system's reference ID for the product |
+  | `product_status_id` | integer (nullable) | no | ID of the publication status to assign |
+  | `product_start_date` | string (nullable) | no | Date from which the product is available (ISO 8601) |
+  | `internal_product_code` | string (nullable) | no | Internal article code |
+  | `manufacturer_product_code` | string (nullable) | no | Manufacturer's own article code |
+  | `product_gtin` | string (nullable) | no | Global Trade Item Number (GTIN, up to 14 digits) |
+  | `product_erp_description` | string (nullable) | no | Short ERP system description |
+  | `product_url` | string (nullable) | no | URL of the product on the manufacturer's website |
+  | `manufacturer_id` | integer (nullable) | no | ID of the manufacturer |
+  | `brand_id` | integer (nullable) | no | ID of the brand |
+  | `product_allowance_group_id` | integer (nullable) | no | ID of the allowance group |
+  | `product_buying_group_id` | integer (nullable) | no | ID of the buying group |
+  | `product_weight` | number (nullable) | no | Product weight |
+  | `product_weight_uom` | string (nullable) | no | Unit of measurement for weight (e.g. KGM, GRM) |
+  | `product_width` | number (nullable) | no | Product width |
+  | `product_height` | number (nullable) | no | Product height |
+  | `product_depth` | number (nullable) | no | Product depth |
+  | `product_dimension_uom` | string (nullable) | no | Unit of measurement for dimensions (e.g. MMT, CMT) |
+  | `product_volume` | number (nullable) | no | Product volume |
+  | `product_volume_uom` | string (nullable) | no | Unit of measurement for volume (e.g. MLT, LTR) |
+  | `cbs_number` | string (nullable) | no | CBS (Statistics Netherlands) product classification code |
+  | `unspsc` | string (nullable) | no | UNSPSC product classification code |
+  | `taric_code` | string (nullable) | no | EU customs tariff (TARIC) code |
+
+  **Example: Queue a product change**. Uses the same validation and accumulated review pipeline as saveProduct. A no-op returns outcome=no_changes and change_request_id=null.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "saveProductChangeRequest",
+    "params": {
+      "product_id": 1,
+      "product_erp_description": "Updated description"
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "product_id": 1,
+    "outcome": "queued_for_review",
+    "change_request_id": 42
+  }
+  ```
+}

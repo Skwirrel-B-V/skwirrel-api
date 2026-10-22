@@ -1,0 +1,117 @@
+meta {
+  name: getMetaClassifications
+  type: http
+  seq: 6
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getMetaClassifications",
+    "params": {
+      "limit": 2
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve ETIM meta-classification definitions
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `custom_classification_id` | integer[] (nullable) | no | Filter by custom classification IDs |
+  | `custom_class_id` | integer[] (nullable) | no | Filter by custom class IDs |
+  | `custom_class_code` | string[] (nullable) | no | Filter by custom class codes |
+  | `custom_collection_id` | integer[] (nullable) | no | Filter by custom collection IDs |
+  | `entity_type` | string[] (nullable) | no | Filter by entity type (e.g. etim_feature, etim_value, custom_feature) |
+  | `etim_feature_codes` | string[] (nullable) | no | Filter by ETIM feature codes (e.g. ["EF000001"]) |
+  | `etim_value_codes` | string[] (nullable) | no | Filter by ETIM value codes (e.g. ["EV000001"]) |
+  | `custom_feature_ids` | integer[] (nullable) | no | Filter by custom feature IDs |
+  | `include_languages` | string[] (nullable) | no | Language codes to include in translations (e.g. ["nl", "fr"]) |
+
+  **Example: All meta classifications**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getMetaClassifications",
+    "params": {
+      "limit": 2
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "meta_classifications": [
+      {
+        "classification_id": 1,
+        "custom_class_id": 1,
+        "custom_classification_type": "META",
+        "custom_classification_description": "Mounting details",
+        "_entities": [
+          {
+            "entity_identifier": "EF000003",
+            "entity_type": "etim_feature",
+            "order": 0
+          },
+          {
+            "entity_identifier": 5,
+            "entity_type": "custom_feature",
+            "order": 1
+          }
+        ],
+        "_features": {
+          "custom_class_id": 1,
+          "custom_class_code": "LOGISTICS",
+          "custom_class_name": "Logistics",
+          "is_deprecated": false,
+          "_custom_features": [
+            {
+              "custom_class_feature_id": 1,
+              "custom_feature_id": 1,
+              "custom_feature_code": "WEIGHT_NET",
+              "custom_feature_type": "N",
+              "custom_unit_id": 1,
+              "custom_unit_code": "KG",
+              "custom_value_id": null,
+              "custom_value_code": null,
+              "custom_values": null,
+              "numeric_value": 0.5,
+              "logical_value": null,
+              "range_min": null,
+              "range_max": null,
+              "text_value": null,
+              "big_text_value": null,
+              "translated_texts": null,
+              "date_value": null,
+              "not_applicable": false,
+              "order_number": 1,
+              "_custom_feature_translations": [],
+              "_custom_unit_translations": []
+            }
+          ]
+        }
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 2,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

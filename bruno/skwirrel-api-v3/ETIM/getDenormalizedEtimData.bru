@@ -1,0 +1,85 @@
+meta {
+  name: getDenormalizedEtimData
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getDenormalizedEtimData",
+    "params": {
+      "include_languages": [
+        "nl"
+      ],
+      "etim_release": [
+        "ETIM-10.0"
+      ],
+      "limit": 2
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve denormalized ETIM classification data for bulk export
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `include_languages` | string[] | yes | Language codes to include (e.g. ["nl", "fr"]); at least one required |
+  | `include_feature_types` | string[] (nullable) | no | Only include ETIM feature types: A (alphanumeric), L (logical), N (numeric), R (range) |
+  | `etim_class_code` | string[] (nullable) | no | Filter by ETIM class codes (e.g. ["EC000001", "MC000001"]) |
+  | `etim_release` | string[] (nullable) | no | Filter by ETIM release codes (e.g. ["EC9.0"]) |
+
+  **Example: ETIM features for products**. include_languages is required.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getDenormalizedEtimData",
+    "params": {
+      "include_languages": [
+        "nl"
+      ],
+      "etim_release": [
+        "ETIM-10.0"
+      ],
+      "limit": 2
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "etim_class_data": [
+      {
+        "language": "nl",
+        "etim_class_code": "EC002713",
+        "etim_class_description": "Ledlamp",
+        "etim_feature_code": "EF000003",
+        "etim_feature_type": "A",
+        "etim_feature_description": "Montagewijze",
+        "etim_value_code": "EV000030",
+        "etim_value_description": "Opbouw"
+      }
+    ],
+    "page": {
+      "number_of_items": 1,
+      "items_per_page": 2,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

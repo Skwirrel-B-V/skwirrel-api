@@ -1,0 +1,165 @@
+meta {
+  name: getTradeItems
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getTradeItems",
+    "params": {
+      "page": 1,
+      "limit": 2
+    },
+    "id": 1
+  }
+}
+
+docs {
+  Retrieve trade items
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `page` | integer | no | Page number (1-based) |
+  | `limit` | integer | no | Maximum number of results per page (1–1000) |
+  | `trade_item_id` | integer[] (nullable) | no | Filter by internal trade item IDs |
+  | `product_id` | integer[] (nullable) | no | Filter by product IDs that own the trade items |
+  | `external_trade_item_id` | string[] (nullable) | no | Filter by your system's reference IDs for trade items |
+  | `include_trade_item_status` | boolean | no | Include trade item status fields |
+  | `include_trade_item_translations` | boolean | no | Include translated trade item names; requires include_languages |
+  | `include_trade_item_prices` | boolean | no | Include price data for trade items |
+  | `include_price_list_id` | integer[] (nullable) | no | Only include prices from these price list IDs; omit to include all |
+  | `include_prices_from_date` | string (nullable) | no | Only include prices valid from this date (format: YYYY-MM-DD) |
+  | `include_future_prices` | boolean | no | Also include future prices when using include_prices_from_date |
+  | `include_trade_item_discounts` | boolean | no | Include discount data for trade items |
+  | `include_trade_item_vat` | boolean | no | Include VAT rate data for trade items |
+  | `include_trade_item_charges` | boolean | no | Include surcharge/charge data for trade items |
+  | `include_trade_item_groups` | boolean | no | Include product group memberships for trade items |
+  | `include_related_trade_items` | boolean | no | Include related (linked) trade items |
+  | `include_trade_item_custom_classes` | boolean | no | Include custom classification data for trade items |
+  | `include_trade_item_custom_class_id` | integer[] (nullable) | no | Only include custom classes with these IDs |
+  | `include_trade_item_custom_collection_id` | integer[] (nullable) | no | Only include custom classes from these collection IDs |
+  | `include_etim` | boolean | no | Include ETIM classification data for trade items |
+  | `include_etim_releases` | string[] (nullable) | no | Only include ETIM data for these release codes (e.g. ["EC9.0"]) |
+  | `include_etim_translations` | boolean | no | Include translated ETIM feature and value names; requires include_languages |
+  | `include_languages` | string[] (nullable) | no | Language codes to include in translations (e.g. ["nl", "fr"]) |
+  | `include_contexts` | integer[] (nullable) | no | Context IDs to include (default: [1]) |
+
+  **Example: First page of trade items**. Use include_* flags to expand prices, translations, VAT, custom classes, and more.
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getTradeItems",
+    "params": {
+      "page": 1,
+      "limit": 2
+    },
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "trade_items": [
+      {
+        "trade_item_id": 1,
+        "external_trade_item_id": null,
+        "product_id": 1,
+        "trade_item_status_id": null,
+        "trade_item_start_date": null,
+        "supplier_id": 1,
+        "trade_item_allowance_group_id": null,
+        "trade_item_buying_group_id": null,
+        "trade_item_gtin": "12345678901234",
+        "supplier_trade_item_code": "SUP-001",
+        "trade_item_url": "",
+        "minimum_order_quantity": 1,
+        "order_multiple": 1,
+        "order_uom": "PCE",
+        "price_to_order_unit_factor": null,
+        "quantity_of_use_units": 1,
+        "smallest_quantity_of_use_units": 1,
+        "use_unit_uom": "PCE",
+        "is_cuttable": false,
+        "cuttable_max_length": null,
+        "cuttable_max_length_uom": null,
+        "trade_item_weight": null,
+        "trade_item_weight_uom": null,
+        "trade_item_width": null,
+        "trade_item_height": null,
+        "trade_item_depth": null,
+        "trade_item_dimension_uom": null,
+        "trade_item_volume": null,
+        "trade_item_volume_uom": null,
+        "trade_item_package_type_code": null,
+        "trade_item_packages": 1,
+        "packaging_stackable": null,
+        "trade_item_package_fragile": false,
+        "trade_item_package_best_before": false,
+        "is_orderable": true,
+        "make_to_stock": false,
+        "delivery_time": null,
+        "delivery_time_max": null,
+        "delivery_time_uom": null
+      },
+      {
+        "trade_item_id": 2,
+        "external_trade_item_id": null,
+        "product_id": 1,
+        "trade_item_status_id": null,
+        "trade_item_start_date": null,
+        "supplier_id": 1,
+        "trade_item_allowance_group_id": null,
+        "trade_item_buying_group_id": null,
+        "trade_item_gtin": "",
+        "supplier_trade_item_code": "SUP-002",
+        "trade_item_url": "",
+        "minimum_order_quantity": 1,
+        "order_multiple": 1,
+        "order_uom": "PCE",
+        "price_to_order_unit_factor": null,
+        "quantity_of_use_units": 1,
+        "smallest_quantity_of_use_units": 1,
+        "use_unit_uom": "PCE",
+        "is_cuttable": false,
+        "cuttable_max_length": null,
+        "cuttable_max_length_uom": null,
+        "trade_item_weight": null,
+        "trade_item_weight_uom": null,
+        "trade_item_width": null,
+        "trade_item_height": null,
+        "trade_item_depth": null,
+        "trade_item_dimension_uom": null,
+        "trade_item_volume": null,
+        "trade_item_volume_uom": null,
+        "trade_item_package_type_code": null,
+        "trade_item_packages": 1,
+        "packaging_stackable": null,
+        "trade_item_package_fragile": false,
+        "trade_item_package_best_before": false,
+        "is_orderable": true,
+        "make_to_stock": false,
+        "delivery_time": null,
+        "delivery_time_max": null,
+        "delivery_time_uom": null
+      }
+    ],
+    "page": {
+      "number_of_items": 2,
+      "items_per_page": 2,
+      "number_of_pages": 1,
+      "current_page": 1
+    }
+  }
+  ```
+}

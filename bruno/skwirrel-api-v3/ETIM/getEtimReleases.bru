@@ -1,0 +1,51 @@
+meta {
+  name: getEtimReleases
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://{{customer}}.{{domain}}/jsonrpc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "method": "getEtimReleases",
+    "params": {},
+    "id": 1
+  }
+}
+
+docs {
+  List all available ETIM releases. The special release DYNAMIC is used for modelling-class classifications.
+
+  No parameters.
+
+  **Example: All releases**
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "method": "getEtimReleases",
+    "params": {},
+    "id": 1
+  }
+  ```
+
+  Result:
+
+  ```json
+  {
+    "releases": [
+      "DYNAMIC",
+      "ETIM-10.0",
+      "ETIM-9.0",
+      "ETIM-8.0",
+      "ETIM-7.0"
+    ]
+  }
+  ```
+}
